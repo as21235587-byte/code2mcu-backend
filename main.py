@@ -126,10 +126,15 @@ class CompileRequest(BaseModel):
 def compile_sketch(request: CompileRequest):
     """
     Abhi jo bhi sketch save hai (last /generate se), usko compile karta hai.
-    NAYA: Ab yeh --output-dir use karta hai taaki compiled .hex/.bin file
+    Ab yeh --output-dir use karta hai taaki compiled .hex/.bin file
     ek fixed jagah (BUILD_DIR) me mile, jise baad me /download-firmware
-    endpoint se browser tak bheja ja sake. Isme kahin bhi local COM port
-    ki zaroorat nahi hai — isliye yeh cloud server par bhi chal sakta hai.
+    endpoint se browser tak bheja ja sake.
+
+    DEBUG PATCH: ab yeh /debug jaisa hi shutil.which() se resolved full
+    path use karta hai (bare "arduino-cli" string par PATH-lookup bharosa
+    karne ke bajaye), aur error message me asli exception (str(e)) bhi
+    include karta hai — taaki agar "not found" wapas aaye to pata chale
+    ki ASLI wajah kya thi, sirf generic guess nahi.
     """
     if not os.path.exists(SKETCH_FILE):
         return {"compile_success": False, "compile_output": "No sketch found. Generate code first."}
@@ -145,25 +150,42 @@ def compile_sketch(request: CompileRequest):
         except OSError:
             pass
 
-    # NAYA: agar arduino-cli hi na mile (ya koi aur unexpected error aaye), to
-    # server crash karke raw "Internal Server Error" na de — ek saaf JSON
-    # error wapas kare taaki frontend usko theek se dikha sake.
+    # Resolve full path abhi, isi request ke waqt — /debug jaisa hi.
+    # Agar bare "arduino-cli" PATH me na mile to fallback string use karo
+    # taaki error message me pata chale ki resolution khud hi fail hui thi.
+    cli_path = shutil.which("arduino-cli") or "arduino-cli"
+    cwd_now = os.getcwd()
+
     try:
         result = subprocess.run(
             [
-                "arduino-cli", "compile",
+                cli_path, "compile",
                 "--fqbn", fqbn,
                 "--output-dir", BUILD_DIR,
                 "--export-binaries",
                 SKETCH_DIR,
             ],
             capture_output=True,
-            text=True
+            text=True,
+            timeout=180,  # free/starter tier par slow ho sakta hai — silently hang na ho
         )
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         return {
             "compile_success": False,
-            "compile_output": "arduino-cli not found on this server. Check the Dockerfile install step and the /debug endpoint.",
+            "compile_output": (
+                f"arduino-cli not found at request time. "
+                f"Resolved path was: {cli_path!r}, cwd: {cwd_now!r}. "
+                f"Raw error: {e}"
+            ),
+            "firmware_ready": False,
+            "firmware_files": [],
+            "board": board,
+            "file_type": BOARD_FILE_TYPE.get(board, "bin"),
+        }
+    except subprocess.TimeoutExpired as e:
+        return {
+            "compile_success": False,
+            "compile_output": f"Compile timed out after {e.timeout}s. Server resources (RAM/CPU) may be too limited for this board's core.",
             "firmware_ready": False,
             "firmware_files": [],
             "board": board,
@@ -172,7 +194,7 @@ def compile_sketch(request: CompileRequest):
     except Exception as e:
         return {
             "compile_success": False,
-            "compile_output": f"Unexpected server error while compiling: {e}",
+            "compile_output": f"Unexpected server error while compiling: {type(e).__name__}: {e}",
             "firmware_ready": False,
             "firmware_files": [],
             "board": board,
@@ -200,10 +222,8 @@ def compile_sketch(request: CompileRequest):
 @app.get("/download-firmware/{filename}")
 def download_firmware(filename: str):
     """
-    NAYA endpoint: compile ke baad ban chuki firmware file (.hex ya .bin)
-    ko seedha browser me download/fetch karne ke liye.
-    Phase 4 me Web Serial (esptool-js / avrgirl-arduino) isi file ko
-    fetch karke user ke board par likhega.
+    Compile ke baad ban chuki firmware file (.hex ya .bin) ko seedha
+    browser me download/fetch karne ke liye.
     """
     # Security: sirf BUILD_DIR ke andar ki file hi serve karo, koi bhi random
     # file-path traversal allow mat karo
@@ -273,18 +293,15 @@ def list_ports():
 
 
 # ---------------------------------------------------------------------------
-# NAYA: DEBUG endpoint — yeh batata hai ki server par arduino-cli mila ya
+# DEBUG endpoint — yeh batata hai ki server par arduino-cli mila ya
 # nahi, uska version kya hai, aur konse board "cores" install hain.
-# Ise browser me kholkar (GET request) seedha JSON dikh jaayega — koi
-# terminal/shell access ki zaroorat nahi. Kaam ho jaane ke baad ise hata
-# dena behtar hai (security ke liye), lekin abhi debugging ke liye rakhna
-# theek hai.
 # ---------------------------------------------------------------------------
 @app.get("/debug")
 def debug_info():
     info = {}
 
     info["arduino_cli_path"] = shutil.which("arduino-cli")
+    info["cwd"] = os.getcwd()
 
     try:
         v = subprocess.run(["arduino-cli", "version"], capture_output=True, text=True, timeout=15)
