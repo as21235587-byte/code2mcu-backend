@@ -8,6 +8,7 @@ from groq import Groq
 from dotenv import load_dotenv
 import os
 import glob
+import shutil
 import subprocess
 
 load_dotenv()
@@ -144,17 +145,40 @@ def compile_sketch(request: CompileRequest):
         except OSError:
             pass
 
-    result = subprocess.run(
-        [
-            "arduino-cli", "compile",
-            "--fqbn", fqbn,
-            "--output-dir", BUILD_DIR,
-            "--export-binaries",
-            SKETCH_DIR,
-        ],
-        capture_output=True,
-        text=True
-    )
+    # NAYA: agar arduino-cli hi na mile (ya koi aur unexpected error aaye), to
+    # server crash karke raw "Internal Server Error" na de — ek saaf JSON
+    # error wapas kare taaki frontend usko theek se dikha sake.
+    try:
+        result = subprocess.run(
+            [
+                "arduino-cli", "compile",
+                "--fqbn", fqbn,
+                "--output-dir", BUILD_DIR,
+                "--export-binaries",
+                SKETCH_DIR,
+            ],
+            capture_output=True,
+            text=True
+        )
+    except FileNotFoundError:
+        return {
+            "compile_success": False,
+            "compile_output": "arduino-cli not found on this server. Check the Dockerfile install step and the /debug endpoint.",
+            "firmware_ready": False,
+            "firmware_files": [],
+            "board": board,
+            "file_type": BOARD_FILE_TYPE.get(board, "bin"),
+        }
+    except Exception as e:
+        return {
+            "compile_success": False,
+            "compile_output": f"Unexpected server error while compiling: {e}",
+            "firmware_ready": False,
+            "firmware_files": [],
+            "board": board,
+            "file_type": BOARD_FILE_TYPE.get(board, "bin"),
+        }
+
     success = result.returncode == 0
 
     firmware_ready = False
@@ -207,11 +231,17 @@ def flash_sketch(request: FlashRequest):
     """(Local-only) Compiled sketch ko diye gaye port par upload karta hai."""
     fqbn = BOARD_FQBN.get(request.board, BOARD_FQBN["uno"])
 
-    result = subprocess.run(
-        ["arduino-cli", "upload", "-p", request.port, "--fqbn", fqbn, SKETCH_DIR],
-        capture_output=True,
-        text=True
-    )
+    try:
+        result = subprocess.run(
+            ["arduino-cli", "upload", "-p", request.port, "--fqbn", fqbn, SKETCH_DIR],
+            capture_output=True,
+            text=True
+        )
+    except FileNotFoundError:
+        return {"upload_success": False, "upload_output": "arduino-cli not found on this server."}
+    except Exception as e:
+        return {"upload_success": False, "upload_output": f"Unexpected server error while flashing: {e}"}
+
     success = result.returncode == 0
     return {
         "upload_success": success,
@@ -230,6 +260,8 @@ def list_ports():
         )
     except FileNotFoundError:
         return {"ports": []}
+    except Exception:
+        return {"ports": []}
 
     ports = []
     for line in result.stdout.splitlines()[1:]:
@@ -238,3 +270,43 @@ def list_ports():
             if parts and parts[0].startswith("COM"):
                 ports.append(parts[0])
     return {"ports": ports}
+
+
+# ---------------------------------------------------------------------------
+# NAYA: DEBUG endpoint — yeh batata hai ki server par arduino-cli mila ya
+# nahi, uska version kya hai, aur konse board "cores" install hain.
+# Ise browser me kholkar (GET request) seedha JSON dikh jaayega — koi
+# terminal/shell access ki zaroorat nahi. Kaam ho jaane ke baad ise hata
+# dena behtar hai (security ke liye), lekin abhi debugging ke liye rakhna
+# theek hai.
+# ---------------------------------------------------------------------------
+@app.get("/debug")
+def debug_info():
+    info = {}
+
+    info["arduino_cli_path"] = shutil.which("arduino-cli")
+
+    try:
+        v = subprocess.run(["arduino-cli", "version"], capture_output=True, text=True, timeout=15)
+        info["version_stdout"] = v.stdout.strip()
+        info["version_stderr"] = v.stderr.strip()
+        info["version_returncode"] = v.returncode
+    except FileNotFoundError:
+        info["version_error"] = "arduino-cli executable not found (FileNotFoundError)."
+    except Exception as e:
+        info["version_error"] = str(e)
+
+    try:
+        c = subprocess.run(["arduino-cli", "core", "list"], capture_output=True, text=True, timeout=15)
+        info["installed_cores_stdout"] = c.stdout.strip()
+        info["installed_cores_stderr"] = c.stderr.strip()
+    except FileNotFoundError:
+        info["core_list_error"] = "arduino-cli executable not found (FileNotFoundError)."
+    except Exception as e:
+        info["core_list_error"] = str(e)
+
+    info["sketch_file_exists"] = os.path.exists(SKETCH_FILE)
+    info["build_dir_exists"] = os.path.exists(BUILD_DIR)
+    info["path_env"] = os.environ.get("PATH", "")
+
+    return info

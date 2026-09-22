@@ -7,9 +7,9 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# --- arduino-cli install karo ---
-RUN curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh -s -- v0.35.3
-ENV PATH="/root/bin:${PATH}"
+# --- arduino-cli install karo (seedha /usr/local/bin me, taaki PATH already
+# usko dekh le aur koi extra ENV PATH line na chahiye) ---
+RUN curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/usr/local/bin sh -s -- v0.35.3
 
 # --- Board "cores" install karo (Uno / ESP32 / ESP8266 ke liye) ---
 RUN arduino-cli core update-index && \

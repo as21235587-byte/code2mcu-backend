@@ -23,9 +23,6 @@
     --dot-bg: #eef0f4;
     --dot-color: #9aa5b8;
     --card-shadow: rgba(20,30,50,0.04);
-    --red: #ef4444;
-    --red-light: #fef2f2;
-    --code-font-size: 13px;
   }
   html[data-theme="dark"] {
     --sidebar: #0a111f;
@@ -43,8 +40,6 @@
     --dot-bg: #202c48;
     --dot-color: #90a0bd;
     --card-shadow: rgba(0,0,0,0.25);
-    --red: #f87171;
-    --red-light: #2a1414;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; }
@@ -142,6 +137,7 @@
     border-radius: 9px; width: 46px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
   }
   .btn-mic.listening { background: #fee2e2; border-color: #ef4444; color: #ef4444; animation: pulse 1s ease-in-out infinite; }
+  #webSerialBtn.ws-connected { background: var(--green-light); border-color: var(--green); color: var(--green); }
 
   .examples-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
   .chip-ex { background: var(--blue-light); color: var(--blue); border: none; font-size: 12px; padding: 7px 12px; border-radius: 20px; cursor: pointer; font-weight: 500; }
@@ -152,9 +148,9 @@
   .code-head h3 { display: flex; align-items: center; gap: 8px; margin: 0; }
   .code-badge { width: 22px; height: 22px; border-radius: 6px; background: var(--blue-light); color: var(--blue); display: flex; align-items: center; justify-content: center; font-size: 12px; }
   .btn-copy { background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 14px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-  .code-body { background: #10182a; display: flex; font-family: 'IBM Plex Mono', monospace; font-size: var(--code-font-size); max-height: 340px; overflow: auto; }
-  .line-nums { padding: 16px 12px; text-align: right; color: #45536f; user-select: none; font-size: var(--code-font-size); }
-  .code-text { padding: 16px; white-space: pre; flex: 1; color: #dbe4f3; font-size: var(--code-font-size); }
+  .code-body { background: #10182a; display: flex; font-family: 'IBM Plex Mono', monospace; font-size: 13px; max-height: 340px; overflow: auto; }
+  .line-nums { padding: 16px 12px; text-align: right; color: #45536f; user-select: none; }
+  .code-text { padding: 16px; white-space: pre; flex: 1; color: #dbe4f3; }
   .kw { color: #c084fc; } .fn { color: #60a5fa; } .cm { color: #5a8f6b; } .num { color: #fbbf24; }
   .flash-row { display: flex; align-items: center; gap: 12px; padding: 18px 22px; border-top: 1px solid var(--border); flex-wrap: wrap; }
   .btn-white { background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 9px; padding: 11px 20px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
@@ -237,55 +233,6 @@
   .theme-btn { flex: 1; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 10px; padding: 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; }
   .theme-btn.active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
   .settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-
-  /* --- extended settings additions --- */
-  .settings-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
-  .settings-nav-btn { background: var(--bg); border: 1px solid var(--border); color: var(--muted); border-radius: 20px; padding: 7px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-  .settings-nav-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
-  .settings-pane { display: none; }
-  .settings-pane.active { display: block; }
-  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 16px; }
-  .toggle-row:last-child { border-bottom: none; }
-  .toggle-row-text b { font-size: 13.5px; display: block; }
-  .toggle-row-text span { font-size: 12px; color: var(--muted); }
-  .switch { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
-  .switch input { opacity: 0; width: 0; height: 0; }
-  .switch .slider { position: absolute; inset: 0; background: var(--pill-off-bg); border: 1px solid var(--border); border-radius: 24px; cursor: pointer; transition: background-color .2s ease; }
-  .switch .slider::before { content: ""; position: absolute; width: 18px; height: 18px; left: 2px; top: 2px; background: #fff; border-radius: 50%; transition: transform .2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-  .switch input:checked + .slider { background: var(--blue); border-color: var(--blue); }
-  .switch input:checked + .slider::before { transform: translateX(18px); }
-  .range-row { display: flex; align-items: center; gap: 12px; }
-  .range-row input[type=range] { flex: 1; accent-color: var(--blue); }
-  .range-val { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--muted); min-width: 44px; text-align: right; }
-  .kbd-list { display: flex; flex-direction: column; gap: 10px; }
-  .kbd-item { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-  .kbd-item span.kbd-desc { color: var(--text); }
-  .kbd-keys kbd { background: var(--bg); border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 6px; padding: 3px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text); }
-  .account-box { display: flex; align-items: center; gap: 14px; }
-  .account-avatar { width: 46px; height: 46px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0; }
-  .account-info b { display: block; font-size: 15px; }
-  .account-info span { font-size: 12.5px; color: var(--muted); }
-  .danger-box { border: 1px solid var(--red); background: var(--red-light); border-radius: 10px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .danger-box b { font-size: 13.5px; color: var(--text); display: block; }
-  .danger-box span { font-size: 12px; color: var(--muted); }
-  .btn-danger { background: var(--red); color: #fff; border: none; border-radius: 8px; padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .settings-toast { position: fixed; bottom: 24px; right: 24px; background: var(--sidebar); color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 200; opacity: 0; transform: translateY(10px); transition: opacity .2s ease, transform .2s ease; pointer-events: none; }
-  .settings-toast.show { opacity: 1; transform: translateY(0); }
-  .about-box { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .about-box .about-version { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--muted); }
-  .profile-modal-box { width: 380px; }
-  .profile-header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
-  .profile-avatar-lg { width: 56px; height: 56px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; flex-shrink: 0; }
-  .profile-header b { font-size: 17px; display: block; }
-  .profile-header span { font-size: 13px; color: var(--muted); }
-  .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
-  .profile-stat { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
-  .profile-stat-num { font-size: 18px; font-weight: 800; color: var(--blue); font-family: 'IBM Plex Mono', monospace; }
-  .profile-stat-label { font-size: 10.5px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.03em; }
-  .profile-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-  .profile-row:last-of-type { border-bottom: none; }
-  .profile-row span.pk { color: var(--muted); }
-  .profile-row span.pv { font-weight: 600; color: var(--text); }
 </style>
 </head>
 <body>
@@ -308,22 +255,22 @@
     </div>
     <div class="logo-text">Code<span>2MCU</span></div>
   </div>
-  <div class="tagline" data-i18n="tagline">Natural language to Arduino</div>
+  <div class="tagline">Natural language to Arduino</div>
   <nav>
-    <a class="active" id="navHome" tabindex="0" role="button" onclick="switchView('home', this)"><span class="ic">🏠</span> <span data-i18n="navHome">Home</span></a>
-    <a id="navHistory" tabindex="0" role="button" onclick="switchView('history', this)"><span class="ic">🕘</span> <span data-i18n="navHistory">History</span></a>
-    <a id="navExamples" tabindex="0" role="button" onclick="switchView('examples', this)"><span class="ic">📖</span> <span data-i18n="navExamples">Examples</span></a>
-    <a id="navBoards" tabindex="0" role="button" onclick="switchView('boards', this)"><span class="ic">🔲</span> <span data-i18n="navBoards">Boards</span></a>
-    <a id="navSerial" tabindex="0" role="button" onclick="switchView('serial', this)"><span class="ic">📟</span> <span data-i18n="navSerial">Serial Monitor</span></a>
-    <a id="navSettings" tabindex="0" role="button" onclick="switchView('settings', this)"><span class="ic">⚙️</span> <span data-i18n="navSettings">Settings</span></a>
+    <a class="active" id="navHome" tabindex="0" role="button" onclick="switchView('home', this)"><span class="ic">🏠</span> Home</a>
+    <a id="navHistory" tabindex="0" role="button" onclick="switchView('history', this)"><span class="ic">🕘</span> History</a>
+    <a id="navExamples" tabindex="0" role="button" onclick="switchView('examples', this)"><span class="ic">📖</span> Examples</a>
+    <a id="navBoards" tabindex="0" role="button" onclick="switchView('boards', this)"><span class="ic">🔲</span> Boards</a>
+    <a id="navSerial" tabindex="0" role="button" onclick="switchView('serial', this)"><span class="ic">📟</span> Serial Monitor</a>
+    <a id="navSettings" tabindex="0" role="button" onclick="switchView('settings', this)"><span class="ic">⚙️</span> Settings</a>
   </nav>
-  <div class="side-tip"><b data-i18n="sideTipTitle">💡 New to Arduino?</b><span data-i18n="sideTipText">Try example commands to get started.</span></div>
+  <div class="side-tip"><b>💡 New to Arduino?</b>Try example commands to get started.</div>
 </div>
 
 <div class="topbar">
   <button class="icon-btn theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light / dark theme">☀️</button>
 
-  <button class="btn-login" id="loginBtn" onclick="openAuthModal('login')" data-i18n="loginBtn">Log in</button>
+  <button class="btn-login" id="loginBtn" onclick="openAuthModal('login')">Log in</button>
 
   <div class="userchip" id="userChip" style="display:none;" onclick="toggleUserDropdown(event)">
     <div class="avatar" id="userAvatar">A</div>
@@ -333,8 +280,8 @@
         <div class="user-dropdown-name" id="ddName">Ayush</div>
         <div class="user-dropdown-email" id="ddEmail">ayush@example.com</div>
       </div>
-      <button class="user-dropdown-item" onclick="event.stopPropagation(); openProfileModal()" data-i18n="ddProfile">👤 Profile</button>
-      <button class="user-dropdown-item danger" onclick="event.stopPropagation(); logout()" data-i18n="ddLogout">🚪 Log out</button>
+      <button class="user-dropdown-item" onclick="event.stopPropagation(); alert('Profile settings coming soon.')">👤 Profile</button>
+      <button class="user-dropdown-item danger" onclick="event.stopPropagation(); logout()">🚪 Log out</button>
     </div>
   </div>
 </div>
@@ -344,71 +291,63 @@
     <button class="modal-close" onclick="closeAuthModal()">✕</button>
 
     <div id="loginPane">
-      <h2 data-i18n="loginTitle">Welcome back</h2>
-      <p class="modal-sub" data-i18n="loginSub">Log in to your Code2MCU account.</p>
+      <h2>Welcome back</h2>
+      <p class="modal-sub">Log in to your Code2MCU account.</p>
       <div class="modal-field">
-        <label for="loginEmail" data-i18n="labelEmail">Email</label>
+        <label for="loginEmail">Email</label>
         <input type="text" id="loginEmail" placeholder="you@example.com">
       </div>
       <div class="modal-field">
-        <label for="loginPassword" data-i18n="labelPassword">Password</label>
+        <label for="loginPassword">Password</label>
         <input type="password" id="loginPassword" placeholder="••••••••">
       </div>
       <div class="modal-error" id="loginError"></div>
       <div class="modal-actions">
-        <button class="btn-white" onclick="closeAuthModal()" data-i18n="btnCancel">Cancel</button>
-        <button class="btn-blue" onclick="doLogin()" data-i18n="loginBtn">Log in</button>
+        <button class="btn-white" onclick="closeAuthModal()">Cancel</button>
+        <button class="btn-blue" onclick="doLogin()">Log in</button>
       </div>
-      <div class="modal-switch"><span data-i18n="noAccount">Don't have an account?</span> <a onclick="openAuthModal('signup')" data-i18n="signupLink">Sign up</a></div>
+      <div class="modal-switch">Don't have an account? <a onclick="openAuthModal('signup')">Sign up</a></div>
     </div>
 
     <div id="signupPane" style="display:none;">
-      <h2 data-i18n="signupTitle">Create account</h2>
-      <p class="modal-sub" data-i18n="signupSub">Sign up to start using Code2MCU.</p>
+      <h2>Create account</h2>
+      <p class="modal-sub">Sign up to start using Code2MCU.</p>
       <div class="modal-field">
-        <label for="signupName" data-i18n="labelName">Name</label>
+        <label for="signupName">Name</label>
         <input type="text" id="signupName" placeholder="Your name">
       </div>
       <div class="modal-field">
-        <label for="signupEmail" data-i18n="labelEmail">Email</label>
+        <label for="signupEmail">Email</label>
         <input type="text" id="signupEmail" placeholder="you@example.com">
       </div>
       <div class="modal-field">
-        <label for="signupPassword" data-i18n="labelPassword">Password</label>
+        <label for="signupPassword">Password</label>
         <input type="password" id="signupPassword" placeholder="••••••••">
       </div>
       <div class="modal-error" id="signupError"></div>
       <div class="modal-actions">
-        <button class="btn-white" onclick="closeAuthModal()" data-i18n="btnCancel">Cancel</button>
-        <button class="btn-blue" onclick="doSignup()" data-i18n="signupBtn">Sign up</button>
+        <button class="btn-white" onclick="closeAuthModal()">Cancel</button>
+        <button class="btn-blue" onclick="doSignup()">Sign up</button>
       </div>
-      <div class="modal-switch"><span data-i18n="haveAccount">Already have an account?</span> <a onclick="openAuthModal('login')" data-i18n="loginBtn">Log in</a></div>
+      <div class="modal-switch">Already have an account? <a onclick="openAuthModal('login')">Log in</a></div>
     </div>
-  </div>
-</div>
 
-<div class="modal-overlay" id="profileOverlay">
-  <div class="modal-box profile-modal-box">
-    <button class="modal-close" onclick="closeProfileModal()">✕</button>
-    <div class="profile-header">
-      <div class="profile-avatar-lg" id="profileAvatarLg">A</div>
-      <div>
-        <b id="profileNameLg">—</b>
-        <span id="profileEmailLg">—</span>
+    <div id="changePasswordPane" style="display:none;">
+      <h2>Change password</h2>
+      <p class="modal-sub">Update the password for your Code2MCU account.</p>
+      <div class="modal-field">
+        <label for="cpOldPassword">Current password</label>
+        <input type="password" id="cpOldPassword" placeholder="••••••••">
       </div>
-    </div>
-    <div class="profile-stats">
-      <div class="profile-stat"><div class="profile-stat-num" id="profileStatGen">0</div><div class="profile-stat-label" data-i18n="profileStatGen">Generated</div></div>
-      <div class="profile-stat"><div class="profile-stat-num" id="profileStatBoard">—</div><div class="profile-stat-label" data-i18n="profileStatBoard">Fav. Board</div></div>
-      <div class="profile-stat"><div class="profile-stat-num" id="profileStatFlash">0</div><div class="profile-stat-label" data-i18n="profileStatFlash">Flashes</div></div>
-    </div>
-    <div class="profile-row"><span class="pk" data-i18n="labelName">Name</span><span class="pv" id="profileRowName">—</span></div>
-    <div class="profile-row"><span class="pk" data-i18n="labelEmail">Email</span><span class="pv" id="profileRowEmail">—</span></div>
-    <div class="profile-row"><span class="pk" data-i18n="profileDefaultBoard">Default board</span><span class="pv" id="profileRowBoard">—</span></div>
-    <div class="profile-row"><span class="pk" data-i18n="profileTheme">Theme</span><span class="pv" id="profileRowTheme">—</span></div>
-    <div class="modal-actions" style="margin-top:16px;">
-      <button class="btn-white" onclick="editAccountName(); closeProfileModal();" data-i18n="profileEditName">✏️ Edit name</button>
-      <button class="btn-blue" onclick="closeProfileModal()" data-i18n="profileClose">Close</button>
+      <div class="modal-field">
+        <label for="cpNewPassword">New password</label>
+        <input type="password" id="cpNewPassword" placeholder="••••••••">
+      </div>
+      <div class="modal-error" id="cpError"></div>
+      <div class="modal-actions">
+        <button class="btn-white" onclick="closeAuthModal()">Cancel</button>
+        <button class="btn-blue" onclick="doChangePassword()">Update password</button>
+      </div>
     </div>
   </div>
 </div>
@@ -427,7 +366,7 @@
         <option value="rpi">Raspberry Pi</option>
       </select>
       <select id="portSelect"></select>
-      <span class="status-pill" id="connStatus"><span class="dot"></span> <span data-i18n="connConnected">Connected</span></span>
+      <span class="status-pill" id="connStatus"><span class="dot"></span> Connected</span>
     </div>
   </div>
 
@@ -435,9 +374,9 @@
   <div class="grid">
     <div>
       <div class="card">
-        <h3 data-i18n="promptCardTitle">What do you want to do?</h3>
+        <h3>What do you want to do?</h3>
         <div class="prompt-row">
-          <input type="text" id="command" placeholder="Blink the LED on pin 13 with 1 second delay" data-i18n-placeholder="commandPlaceholder">
+          <input type="text" id="command" placeholder="Blink the LED on pin 13 with 1 second delay">
           <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Voice command">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="9" y="2" width="6" height="12" rx="3"></rect>
@@ -446,48 +385,50 @@
               <line x1="8" y1="23" x2="16" y2="23"></line>
             </svg>
           </button>
-          <button class="btn-blue" id="genBtn" onclick="generateCode()" data-i18n="genBtn">✨ Generate Code</button>
+          <button class="btn-blue" id="genBtn" onclick="generateCode()">✨ Generate Code</button>
         </div>
         <div class="examples-row">
-          <span data-i18n="tryExamples">Try these examples:</span>
-          <span class="chip-ex" onclick="setCmd('Blink the LED on pin 13 with 1 second delay')" data-i18n="chipBlink">Blink LED</span>
-          <span class="chip-ex" onclick="setCmd('Read temperature from LM35 sensor on pin A0')" data-i18n="chipTemp">Read temperature (LM35)</span>
-          <span class="chip-ex" onclick="setCmd('Control a servo motor on pin 9')" data-i18n="chipServo">Control servo motor</span>
-          <span class="chip-ex" onclick="setCmd('Read button state on pin 7')" data-i18n="chipButton">Read button</span>
+          Try these examples:
+          <span class="chip-ex" onclick="setCmd('Blink the LED on pin 13 with 1 second delay')">Blink LED</span>
+          <span class="chip-ex" onclick="setCmd('Read temperature from LM35 sensor on pin A0')">Read temperature (LM35)</span>
+          <span class="chip-ex" onclick="setCmd('Control a servo motor on pin 9')">Control servo motor</span>
+          <span class="chip-ex" onclick="setCmd('Read button state on pin 7')">Read button</span>
         </div>
       </div>
 
       <div class="card code-card">
         <div class="code-head">
-          <h3><span class="code-badge">&lt;/&gt;</span> <span data-i18n="genCodeTitle">Generated Code (Arduino C++)</span></h3>
-          <button class="btn-copy" onclick="copyCode()" data-i18n="copyBtn">📋 Copy</button>
+          <h3><span class="code-badge">&lt;/&gt;</span> Generated Code (Arduino C++)</h3>
+          <button class="btn-copy" onclick="copyCode()">📋 Copy</button>
         </div>
         <div class="code-body">
           <div class="line-nums" id="lineNums"></div>
           <div class="code-text" id="codeText">// "Generate Code" dabane par yahan dikhega</div>
         </div>
         <div class="flash-row">
-          <button class="btn-white" id="compileBtn" onclick="compileCode()" data-i18n="compileBtn">⚙️ Compile</button>
-          <button class="btn-green" id="flashBtn" onclick="flashCode()" data-i18n="flashBtn">⚡ Flash to Board</button>
-          <div class="check-row"><input type="checkbox" id="autoScroll" checked> <span data-i18n="autoScroll">Auto scroll logs</span></div>
+          <button class="btn-white" id="webSerialBtn" onclick="connectWebSerial()">🔌 Connect via Web Serial</button>
+          <button class="btn-white" id="compileBtn" onclick="compileCode()">⚙️ Compile</button>
+          <button class="btn-green" id="flashBtn" onclick="flashCode()">⚡ Flash to Board</button>
+          <div class="check-row"><input type="checkbox" id="autoScroll" checked> Auto scroll logs</div>
         </div>
         <div class="inline-msg" id="inlineMsg"></div>
+        <div class="inline-msg" style="color:var(--muted); padding-top:0;">Web Serial lets the browser flash the board directly — no local backend/COM-port needed. Works for Arduino Uno right now; ESP32/ESP8266 support is coming soon.</div>
       </div>
     </div>
 
     <div>
       <div class="card">
-        <h3 data-i18n="uploadStatusTitle">📶 Upload Status</h3>
+        <h3>📶 Upload Status</h3>
         <div id="pipeline">
-          <div class="step"><div class="step-dot" id="dot1">○</div><div><div class="step-title" data-i18n="stepGen">Code generated</div><div class="step-sub" id="sub1" data-i18n="waiting">Waiting...</div></div></div>
-          <div class="step"><div class="step-dot" id="dot2">○</div><div><div class="step-title" data-i18n="stepCompile">Compilation successful</div><div class="step-sub" id="sub2" data-i18n="waiting">Waiting...</div></div></div>
-          <div class="step"><div class="step-dot" id="dot3">○</div><div><div class="step-title" id="sub3title" data-i18n="stepUpload">Uploading to board</div><div class="step-sub" id="sub3" data-i18n="waiting">Waiting...</div></div></div>
-          <div class="step"><div class="step-dot" id="dot4">○</div><div><div class="step-title" data-i18n="stepDone">Done</div><div class="step-sub" id="sub4" data-i18n="waiting">Waiting...</div></div></div>
+          <div class="step"><div class="step-dot" id="dot1">○</div><div><div class="step-title">Code generated</div><div class="step-sub" id="sub1">Waiting...</div></div></div>
+          <div class="step"><div class="step-dot" id="dot2">○</div><div><div class="step-title">Compilation successful</div><div class="step-sub" id="sub2">Waiting...</div></div></div>
+          <div class="step"><div class="step-dot" id="dot3">○</div><div><div class="step-title" id="sub3title">Uploading to board</div><div class="step-sub" id="sub3">Waiting...</div></div></div>
+          <div class="step"><div class="step-dot" id="dot4">○</div><div><div class="step-title">Done</div><div class="step-sub" id="sub4">Waiting...</div></div></div>
         </div>
       </div>
 
       <div class="card">
-        <h3 style="display:flex; justify-content:space-between; align-items:center;"><span data-i18n="miniSerialTitle">📟 Serial Monitor</span> <button class="btn-clear" onclick="clearLog()" data-i18n="clearBtn">Clear</button></h3>
+        <h3 style="display:flex; justify-content:space-between; align-items:center;">📟 Serial Monitor <button class="btn-clear" onclick="clearLog()">Clear</button></h3>
         <div class="terminal" id="terminal">--- Log ---</div>
       </div>
     </div>
@@ -496,48 +437,48 @@
 
   <div class="view" id="view-examples">
     <div class="card">
-      <h3 data-i18n="examplesCardTitle">📖 Example commands</h3>
-      <p style="margin:-6px 0 16px; font-size:13px; color:var(--muted);" data-i18n="examplesCardDesc">Pick one to load it into the prompt box and jump straight to Generate.</p>
+      <h3>📖 Example commands</h3>
+      <p style="margin:-6px 0 16px; font-size:13px; color:var(--muted);">Pick one to load it into the prompt box and jump straight to Generate.</p>
       <div class="example-grid">
         <div class="example-card">
-          <div class="example-top"><div class="example-icon">💡</div><div class="example-title" data-i18n="exTitleBlink">Blink LED</div></div>
-          <div class="example-desc" data-i18n="exDescBlink">Blink the LED on pin 13 with a 1 second delay.</div>
-          <button class="btn-white" onclick="useExample('Blink the LED on pin 13 with 1 second delay')" data-i18n="useThis">Use this →</button>
+          <div class="example-top"><div class="example-icon">💡</div><div class="example-title">Blink LED</div></div>
+          <div class="example-desc">Blink the LED on pin 13 with a 1 second delay.</div>
+          <button class="btn-white" onclick="useExample('Blink the LED on pin 13 with 1 second delay')">Use this →</button>
         </div>
         <div class="example-card">
-          <div class="example-top"><div class="example-icon">🌡️</div><div class="example-title" data-i18n="exTitleTemp">Read Temperature</div></div>
-          <div class="example-desc" data-i18n="exDescTemp">Read temperature from an LM35 sensor on pin A0.</div>
-          <button class="btn-white" onclick="useExample('Read temperature from LM35 sensor on pin A0')" data-i18n="useThis">Use this →</button>
+          <div class="example-top"><div class="example-icon">🌡️</div><div class="example-title">Read Temperature</div></div>
+          <div class="example-desc">Read temperature from an LM35 sensor on pin A0.</div>
+          <button class="btn-white" onclick="useExample('Read temperature from LM35 sensor on pin A0')">Use this →</button>
         </div>
         <div class="example-card">
-          <div class="example-top"><div class="example-icon">🔄</div><div class="example-title" data-i18n="exTitleServo">Control Servo Motor</div></div>
-          <div class="example-desc" data-i18n="exDescServo">Sweep a servo motor connected to pin 9.</div>
-          <button class="btn-white" onclick="useExample('Control a servo motor on pin 9')" data-i18n="useThis">Use this →</button>
+          <div class="example-top"><div class="example-icon">🔄</div><div class="example-title">Control Servo Motor</div></div>
+          <div class="example-desc">Sweep a servo motor connected to pin 9.</div>
+          <button class="btn-white" onclick="useExample('Control a servo motor on pin 9')">Use this →</button>
         </div>
         <div class="example-card">
-          <div class="example-top"><div class="example-icon">🔘</div><div class="example-title" data-i18n="exTitleButton">Read Button</div></div>
-          <div class="example-desc" data-i18n="exDescButton">Read the state of a push button on pin 7.</div>
-          <button class="btn-white" onclick="useExample('Read button state on pin 7')" data-i18n="useThis">Use this →</button>
+          <div class="example-top"><div class="example-icon">🔘</div><div class="example-title">Read Button</div></div>
+          <div class="example-desc">Read the state of a push button on pin 7.</div>
+          <button class="btn-white" onclick="useExample('Read button state on pin 7')">Use this →</button>
         </div>
         <div class="example-card">
-          <div class="example-top"><div class="example-icon">🌈</div><div class="example-title" data-i18n="exTitleRgb">RGB LED Fade</div></div>
-          <div class="example-desc" data-i18n="exDescRgb">Fade an RGB LED through colors on pins 9, 10 and 11.</div>
-          <button class="btn-white" onclick="useExample('Fade an RGB LED through colors on pins 9, 10, 11')" data-i18n="useThis">Use this →</button>
+          <div class="example-top"><div class="example-icon">🌈</div><div class="example-title">RGB LED Fade</div></div>
+          <div class="example-desc">Fade an RGB LED through colors on pins 9, 10 and 11.</div>
+          <button class="btn-white" onclick="useExample('Fade an RGB LED through colors on pins 9, 10, 11')">Use this →</button>
         </div>
         <div class="example-card">
-          <div class="example-top"><div class="example-icon">📏</div><div class="example-title" data-i18n="exTitleUltra">Ultrasonic Distance</div></div>
-          <div class="example-desc" data-i18n="exDescUltra">Measure distance with an HC-SR04 sensor on pins 6 and 7.</div>
-          <button class="btn-white" onclick="useExample('Measure distance using HC-SR04 ultrasonic sensor on pins 6 and 7')" data-i18n="useThis">Use this →</button>
+          <div class="example-top"><div class="example-icon">📏</div><div class="example-title">Ultrasonic Distance</div></div>
+          <div class="example-desc">Measure distance with an HC-SR04 sensor on pins 6 and 7.</div>
+          <button class="btn-white" onclick="useExample('Measure distance using HC-SR04 ultrasonic sensor on pins 6 and 7')">Use this →</button>
         </div>
         <div class="example-card">
-          <div class="example-top"><div class="example-icon">🔔</div><div class="example-title" data-i18n="exTitleBuzzer">Buzzer Alarm</div></div>
-          <div class="example-desc" data-i18n="exDescBuzzer">Sound a buzzer on pin 8 when a button on pin 2 is pressed.</div>
-          <button class="btn-white" onclick="useExample('Sound a buzzer on pin 8 when a button on pin 2 is pressed')" data-i18n="useThis">Use this →</button>
+          <div class="example-top"><div class="example-icon">🔔</div><div class="example-title">Buzzer Alarm</div></div>
+          <div class="example-desc">Sound a buzzer on pin 8 when a button on pin 2 is pressed.</div>
+          <button class="btn-white" onclick="useExample('Sound a buzzer on pin 8 when a button on pin 2 is pressed')">Use this →</button>
         </div>
         <div class="example-card">
-          <div class="example-top"><div class="example-icon">🚶</div><div class="example-title" data-i18n="exTitleMotion">Motion Sensor</div></div>
-          <div class="example-desc" data-i18n="exDescMotion">Detect motion with a PIR sensor on pin 4 and light an LED on pin 13.</div>
-          <button class="btn-white" onclick="useExample('Detect motion using a PIR sensor on pin 4 and turn on an LED on pin 13')" data-i18n="useThis">Use this →</button>
+          <div class="example-top"><div class="example-icon">🚶</div><div class="example-title">Motion Sensor</div></div>
+          <div class="example-desc">Detect motion with a PIR sensor on pin 4 and light an LED on pin 13.</div>
+          <button class="btn-white" onclick="useExample('Detect motion using a PIR sensor on pin 4 and turn on an LED on pin 13')">Use this →</button>
         </div>
       </div>
     </div>
@@ -545,45 +486,45 @@
 
   <div class="view" id="view-history">
     <div class="card">
-      <h3 style="display:flex; justify-content:space-between; align-items:center;"><span data-i18n="historyCardTitle">🕘 Generation history</span> <button class="btn-clear" onclick="clearHistory()" data-i18n="clearHistoryBtn">Clear history</button></h3>
-      <p style="margin:-6px 0 16px; font-size:13px; color:var(--muted);" data-i18n="historyCardDesc">Every command you've generated code for, most recent first. Reload any of them straight back into the editor.</p>
+      <h3 style="display:flex; justify-content:space-between; align-items:center;">🕘 Generation history <button class="btn-clear" onclick="clearHistory()">Clear history</button></h3>
+      <p style="margin:-6px 0 16px; font-size:13px; color:var(--muted);">Every command you've generated code for, most recent first. Reload any of them straight back into the editor.</p>
       <div id="historyList"></div>
     </div>
   </div>
 
   <div class="view" id="view-boards">
     <div class="card">
-      <h3 data-i18n="boardsCardTitle">🔲 Supported boards</h3>
-      <p style="margin:-6px 0 16px; font-size:13px; color:var(--muted);" data-i18n="boardsCardDesc">Selecting a board here updates it everywhere in the app.</p>
+      <h3>🔲 Supported boards</h3>
+      <p style="margin:-6px 0 16px; font-size:13px; color:var(--muted);">Selecting a board here updates it everywhere in the app.</p>
       <div class="board-grid" id="boardGrid">
         <div class="board-card" id="boardCard-uno">
-          <div class="board-card-head"><span class="board-name">Arduino Uno</span><span class="board-tag" data-i18n="tagBeginner">Beginner friendly</span></div>
-          <div class="board-spec" data-i18n="specUno">ATmega328P · 5V logic · 14 digital / 6 analog pins</div>
-          <button class="btn-white" onclick="selectBoard('uno')" data-i18n="selectBoardBtn">Select this board</button>
+          <div class="board-card-head"><span class="board-name">Arduino Uno</span><span class="board-tag">Beginner friendly</span></div>
+          <div class="board-spec">ATmega328P · 5V logic · 14 digital / 6 analog pins</div>
+          <button class="btn-white" onclick="selectBoard('uno')">Select this board</button>
         </div>
         <div class="board-card" id="boardCard-esp32">
-          <div class="board-card-head"><span class="board-name">ESP32</span><span class="board-tag" data-i18n="tagWifi">Wi-Fi &amp; BLE</span></div>
-          <div class="board-spec" data-i18n="specEsp32">Dual-core · Wi-Fi + Bluetooth · 3.3V logic</div>
-          <button class="btn-white" onclick="selectBoard('esp32')" data-i18n="selectBoardBtn">Select this board</button>
+          <div class="board-card-head"><span class="board-name">ESP32</span><span class="board-tag">Wi-Fi &amp; BLE</span></div>
+          <div class="board-spec">Dual-core · Wi-Fi + Bluetooth · 3.3V logic</div>
+          <button class="btn-white" onclick="selectBoard('esp32')">Select this board</button>
         </div>
         <div class="board-card" id="boardCard-esp8266">
-          <div class="board-card-head"><span class="board-name">ESP8266</span><span class="board-tag" data-i18n="tagCompact">Compact Wi-Fi</span></div>
-          <div class="board-spec" data-i18n="specEsp8266">Single-core · Wi-Fi · 3.3V logic</div>
-          <button class="btn-white" onclick="selectBoard('esp8266')" data-i18n="selectBoardBtn">Select this board</button>
+          <div class="board-card-head"><span class="board-name">ESP8266</span><span class="board-tag">Compact Wi-Fi</span></div>
+          <div class="board-spec">Single-core · Wi-Fi · 3.3V logic</div>
+          <button class="btn-white" onclick="selectBoard('esp8266')">Select this board</button>
         </div>
         <div class="board-card" id="boardCard-rpi">
-          <div class="board-card-head"><span class="board-name">Raspberry Pi</span><span class="board-tag" data-i18n="tagLinux">Full Linux SBC</span></div>
-          <div class="board-spec" data-i18n="specRpi">GPIO pins · Wi-Fi + Bluetooth · Runs full Linux OS</div>
-          <button class="btn-white" onclick="selectBoard('rpi')" data-i18n="selectBoardBtn">Select this board</button>
+          <div class="board-card-head"><span class="board-name">Raspberry Pi</span><span class="board-tag">Full Linux SBC</span></div>
+          <div class="board-spec">GPIO pins · Wi-Fi + Bluetooth · Runs full Linux OS</div>
+          <button class="btn-white" onclick="selectBoard('rpi')">Select this board</button>
         </div>
       </div>
     </div>
     <div class="card">
       <div class="ports-row">
-        <h3 style="margin:0;" data-i18n="portsCardTitle">🔌 Detected ports</h3>
-        <button class="btn-clear" onclick="loadPorts()" data-i18n="refreshBtn">Refresh</button>
+        <h3 style="margin:0;">🔌 Detected ports</h3>
+        <button class="btn-clear" onclick="loadPorts()">Refresh</button>
       </div>
-      <div id="portsList" style="font-size:13px; color:var(--muted);" data-i18n="checkingPorts">Checking for connected boards...</div>
+      <div id="portsList" style="font-size:13px; color:var(--muted);">Checking for connected boards...</div>
     </div>
   </div>
 
@@ -591,8 +532,8 @@
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
         <div style="display:flex; align-items:center; gap:10px;">
-          <h3 style="margin:0;" data-i18n="liveSerialTitle">📟 Live Serial Console</h3>
-          <span class="status-pill" id="serialStatusPill"><span class="dot"></span> <span data-i18n="noBoard">No board</span></span>
+          <h3 style="margin:0;">📟 Live Serial Console</h3>
+          <span class="status-pill" id="serialStatusPill"><span class="dot"></span> No board</span>
         </div>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
           <select id="baudSelect">
@@ -601,49 +542,62 @@
             <option value="57600">57600 baud</option>
             <option value="115200">115200 baud</option>
           </select>
-          <button class="btn-clear" onclick="clearLog()" data-i18n="clearBtn">Clear</button>
+          <button class="btn-clear" onclick="clearLog()">Clear</button>
         </div>
       </div>
 
       <div class="serial-stats">
-        <div class="serial-stat"><div class="serial-stat-num" id="statPort">—</div><div class="serial-stat-label" data-i18n="statPortLabel">Active port</div></div>
-        <div class="serial-stat"><div class="serial-stat-num" id="statLines">0</div><div class="serial-stat-label" data-i18n="statLinesLabel">Lines logged</div></div>
-        <div class="serial-stat"><div class="serial-stat-num" id="statUptime">00:00</div><div class="serial-stat-label" data-i18n="statUptimeLabel">Session time</div></div>
+        <div class="serial-stat"><div class="serial-stat-num" id="statPort">—</div><div class="serial-stat-label">Active port</div></div>
+        <div class="serial-stat"><div class="serial-stat-num" id="statLines">0</div><div class="serial-stat-label">Lines logged</div></div>
+        <div class="serial-stat"><div class="serial-stat-num" id="statUptime">00:00</div><div class="serial-stat-label">Session time</div></div>
       </div>
 
       <div class="terminal terminal-full" id="terminalFull">--- Log ---</div>
 
       <div class="serial-send-row">
-        <input type="text" id="serialSendInput" placeholder="Type data to send to the board and press Enter…" data-i18n-placeholder="serialSendPlaceholder" onkeydown="if(event.key==='Enter') sendSerialData();">
-        <button class="btn-blue" onclick="sendSerialData()" data-i18n="sendBtn">➤ Send</button>
+        <input type="text" id="serialSendInput" placeholder="Type data to send to the board and press Enter…" onkeydown="if(event.key==='Enter') sendSerialData();">
+        <button class="btn-blue" onclick="sendSerialData()">➤ Send</button>
       </div>
     </div>
   </div>
 
   <div class="view" id="view-settings">
-    <div class="settings-nav" id="settingsNav">
-      <button class="settings-nav-btn active" data-pane="general" onclick="switchSettingsPane('general', this)" data-i18n="tabGeneral">General</button>
-      <button class="settings-nav-btn" data-pane="account" onclick="switchSettingsPane('account', this)" data-i18n="tabAccount">Account</button>
-      <button class="settings-nav-btn" data-pane="generation" onclick="switchSettingsPane('generation', this)" data-i18n="tabGeneration">Code Generation</button>
-      <button class="settings-nav-btn" data-pane="notifications" onclick="switchSettingsPane('notifications', this)" data-i18n="tabNotifications">Notifications</button>
-      <button class="settings-nav-btn" data-pane="editor" onclick="switchSettingsPane('editor', this)" data-i18n="tabEditor">Editor</button>
-      <button class="settings-nav-btn" data-pane="shortcuts" onclick="switchSettingsPane('shortcuts', this)" data-i18n="tabShortcuts">Shortcuts</button>
-      <button class="settings-nav-btn" data-pane="privacy" onclick="switchSettingsPane('privacy', this)" data-i18n="tabPrivacy">Data &amp; Privacy</button>
-      <button class="settings-nav-btn" data-pane="about" onclick="switchSettingsPane('about', this)" data-i18n="tabAbout">About</button>
+    <div class="card" id="accountCard">
+      <div class="settings-section" style="border-bottom:none; padding-bottom:0; margin-bottom:0;">
+        <h4>Account</h4>
+        <p class="settings-desc">Manage your Code2MCU profile.</p>
+        <div id="accountLoggedOut">
+          <p style="font-size:13px; color:var(--muted); margin:0 0 12px;">You're not logged in.</p>
+          <button class="btn-blue" onclick="openAuthModal('login')">Log in</button>
+        </div>
+        <div id="accountLoggedIn" style="display:none;">
+          <div class="settings-row" style="margin-bottom:16px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div class="avatar" id="settingsAvatar" style="width:44px; height:44px; font-size:17px;">A</div>
+              <div>
+                <div style="font-weight:700; font-size:15px;" id="settingsName">—</div>
+                <div style="font-size:12px; color:var(--muted);" id="settingsEmail">—</div>
+              </div>
+            </div>
+            <button class="btn-white" onclick="logout()">Log out</button>
+          </div>
+          <button class="btn-white" onclick="openChangePassword()">🔒 Change password</button>
+        </div>
+      </div>
     </div>
 
-    <div class="card settings-pane active" id="pane-general">
+    <div class="card">
       <div class="settings-section">
-        <h4 data-i18n="appearanceTitle">Appearance</h4>
-        <p class="settings-desc" data-i18n="appearanceDesc">Choose how Code2MCU looks.</p>
+        <h4>Appearance</h4>
+        <p class="settings-desc">Choose how Code2MCU looks.</p>
         <div class="theme-choice">
-          <button class="theme-btn" id="themeBtnLight" onclick="setTheme('light')" data-i18n="themeLight">☀️ Light</button>
-          <button class="theme-btn" id="themeBtnDark" onclick="setTheme('dark')" data-i18n="themeDark">🌙 Dark</button>
+          <button class="theme-btn" id="themeBtnLight" onclick="setTheme('light')">☀️ Light</button>
+          <button class="theme-btn" id="themeBtnDark" onclick="setTheme('dark')">🌙 Dark</button>
         </div>
       </div>
       <div class="settings-section">
-        <h4 data-i18n="defaultBoardTitle">Default board</h4>
-        <p class="settings-desc" data-i18n="defaultBoardDesc">Used to pre-select a board whenever you open Code2MCU.</p>
+        <h4>Default board</h4>
+        <p class="settings-desc">Used to pre-select a board whenever you open Code2MCU.</p>
         <select id="defaultBoardSelect" onchange="syncBoardFromSettings()" style="width:100%;">
           <option value="uno">Arduino Uno</option>
           <option value="esp32">ESP32</option>
@@ -651,154 +605,73 @@
           <option value="rpi">Raspberry Pi</option>
         </select>
       </div>
-      <div class="settings-section">
-        <h4 data-i18n="languageTitle">Language</h4>
-        <p class="settings-desc" data-i18n="languageDesc">Interface language preference.</p>
-        <select id="languageSelect" onchange="onLanguageChange()" style="width:100%;">
-          <option value="en">English</option>
-          <option value="hi">हिंदी (Hindi)</option>
-        </select>
-      </div>
-      <div class="settings-section">
-        <h4 data-i18n="serialMonTitle">Serial Monitor</h4>
-        <p class="settings-desc" data-i18n="serialMonDesc">Control how the log panel behaves.</p>
+      <div class="settings-section" style="border-bottom:none; padding-bottom:0; margin-bottom:0;">
+        <h4>Serial Monitor</h4>
+        <p class="settings-desc">Control how the log panel behaves.</p>
+        <div class="settings-row" style="margin-bottom:12px;">
+          <label class="check-row" style="font-size:14px; color:var(--text);"><input type="checkbox" id="autoScrollSettings" checked> Auto scroll logs</label>
+          <button class="btn-white" onclick="clearLog()">Clear log</button>
+        </div>
         <div class="settings-row">
-          <label class="check-row" style="font-size:14px; color:var(--text);"><input type="checkbox" id="autoScrollSettings" checked> <span data-i18n="autoScroll">Auto scroll logs</span></label>
-          <button class="btn-white" onclick="clearLog()" data-i18n="clearLogBtn">Clear log</button>
+          <label style="font-size:14px; color:var(--text);">Default baud rate</label>
+          <select id="defaultBaudSelect" onchange="syncBaudFromSettings()" style="width:140px;">
+            <option value="9600">9600</option>
+            <option value="19200">19200</option>
+            <option value="57600">57600</option>
+            <option value="115200">115200</option>
+          </select>
         </div>
       </div>
     </div>
 
-    <div class="card settings-pane" id="pane-account">
-      <div class="settings-section" id="accountLoggedOut">
-        <h4 data-i18n="accountTitle">Account</h4>
-        <p class="settings-desc" data-i18n="accountLoggedOutDesc">Log in to sync your history and preferences across devices.</p>
-        <button class="btn-blue" onclick="openAuthModal('login')" data-i18n="loginSignupBtn">Log in / Sign up</button>
-      </div>
-      <div class="settings-section" id="accountLoggedIn" style="display:none;">
-        <h4 data-i18n="accountTitle">Account</h4>
-        <div class="account-box" style="margin-bottom:14px;">
-          <div class="account-avatar" id="accAvatar">A</div>
-          <div class="account-info">
-            <b id="accName">—</b>
-            <span id="accEmail">—</span>
-          </div>
+    <div class="card">
+      <div class="settings-section" style="border-bottom:none; padding-bottom:0; margin-bottom:0;">
+        <h4>Editor &amp; Code</h4>
+        <p class="settings-desc">Customize how generated code is displayed.</p>
+        <div class="settings-row" style="margin-bottom:12px;">
+          <label style="font-size:14px; color:var(--text);">Code font size</label>
+          <select id="fontSizeSelect" onchange="applyEditorPrefs()" style="width:160px;">
+            <option value="12">Small (12px)</option>
+            <option value="13">Default (13px)</option>
+            <option value="15">Large (15px)</option>
+            <option value="17">Extra large (17px)</option>
+          </select>
         </div>
-        <div class="settings-row" style="margin-bottom:10px;">
-          <button class="btn-white" onclick="editAccountName()" data-i18n="editNameBtn">✏️ Edit display name</button>
-          <button class="btn-white" onclick="logout()" data-i18n="ddLogout">🚪 Log out</button>
-        </div>
-      </div>
-      <div class="settings-section">
-        <h4 data-i18n="sessionTitle">Session</h4>
-        <p class="settings-desc" data-i18n="sessionDesc">You're signed in on this browser only. Logging out clears your local session.</p>
-      </div>
-    </div>
-
-    <div class="card settings-pane" id="pane-generation">
-      <div class="settings-section">
-        <h4 data-i18n="codeStyleTitle">Code style</h4>
-        <p class="settings-desc" data-i18n="codeStyleDesc">Controls how generated Arduino sketches are written.</p>
-        <select id="codeStyleSelect" onchange="onPrefChange()" style="width:100%; margin-bottom:14px;">
-          <option value="verbose">Verbose — with comments &amp; explanations</option>
-          <option value="compact">Compact — minimal, production style</option>
-        </select>
-        <div class="toggle-row">
-          <div class="toggle-row-text"><b data-i18n="addCommentsTitle">Add explanatory comments</b><span data-i18n="addCommentsDesc">Include inline // comments in generated code</span></div>
-          <label class="switch"><input type="checkbox" id="addCommentsToggle" checked onchange="onPrefChange()"><span class="slider"></span></label>
-        </div>
-        <div class="toggle-row">
-          <div class="toggle-row-text"><b data-i18n="safetyChecksTitle">Include safety checks</b><span data-i18n="safetyChecksDesc">Add bounds checks &amp; debounce where relevant</span></div>
-          <label class="switch"><input type="checkbox" id="safetyChecksToggle" checked onchange="onPrefChange()"><span class="slider"></span></label>
-        </div>
-      </div>
-      <div class="settings-section">
-        <h4 data-i18n="creativityTitle">Creativity</h4>
-        <p class="settings-desc" data-i18n="creativityDesc">Lower = more predictable code, higher = more variation in approach.</p>
-        <div class="range-row">
-          <input type="range" id="creativityRange" min="0" max="100" value="30" oninput="onCreativityInput()">
-          <span class="range-val" id="creativityVal">30%</span>
+        <div class="settings-row">
+          <label class="check-row" style="font-size:14px; color:var(--text);"><input type="checkbox" id="wordWrapToggle" onchange="applyEditorPrefs()"> Wrap long lines in code view</label>
         </div>
       </div>
     </div>
 
-    <div class="card settings-pane" id="pane-notifications">
-      <div class="settings-section">
-        <h4 data-i18n="notifTitle">Notifications</h4>
-        <p class="settings-desc" data-i18n="notifDesc">Get notified when a generate / compile / flash job finishes.</p>
-        <div class="toggle-row">
-          <div class="toggle-row-text"><b data-i18n="soundNotifTitle">Sound on completion</b><span data-i18n="soundNotifDesc">Play a short tone when a job succeeds or fails</span></div>
-          <label class="switch"><input type="checkbox" id="soundNotifToggle" checked onchange="onPrefChange()"><span class="slider"></span></label>
+    <div class="card">
+      <div class="settings-section" style="border-bottom:none; padding-bottom:0; margin-bottom:0;">
+        <h4>Notifications</h4>
+        <p class="settings-desc">Get notified when a build or flash finishes.</p>
+        <div class="settings-row" style="margin-bottom:12px;">
+          <label class="check-row" style="font-size:14px; color:var(--text);"><input type="checkbox" id="soundToggle" onchange="saveNotifPrefs()"> Play a sound when generate/flash completes</label>
         </div>
-        <div class="toggle-row">
-          <div class="toggle-row-text"><b data-i18n="desktopNotifTitle">Desktop notifications</b><span data-i18n="desktopNotifDesc">Show a system notification for compile/flash results</span></div>
-          <label class="switch"><input type="checkbox" id="desktopNotifToggle" onchange="onDesktopNotifToggle()"><span class="slider"></span></label>
+        <div class="settings-row">
+          <label class="check-row" style="font-size:14px; color:var(--text);"><input type="checkbox" id="desktopNotifToggle" onchange="toggleDesktopNotif()"> Show desktop notifications</label>
         </div>
       </div>
     </div>
 
-    <div class="card settings-pane" id="pane-editor">
-      <div class="settings-section">
-        <h4 data-i18n="fontSizeTitle">Code editor font size</h4>
-        <p class="settings-desc" data-i18n="fontSizeDesc">Adjusts the size of the generated code panel.</p>
-        <div class="range-row">
-          <input type="range" id="fontSizeRange" min="11" max="18" value="13" oninput="onFontSizeInput()">
-          <span class="range-val" id="fontSizeVal">13px</span>
-        </div>
-      </div>
-      <div class="settings-section">
-        <h4 data-i18n="defaultBaudTitle">Default baud rate</h4>
-        <p class="settings-desc" data-i18n="defaultBaudDesc">Used to pre-select the baud rate in the Serial Monitor.</p>
-        <select id="defaultBaudSelect" onchange="onPrefChange()" style="width:100%;">
-          <option value="9600">9600 baud</option>
-          <option value="19200">19200 baud</option>
-          <option value="57600">57600 baud</option>
-          <option value="115200">115200 baud</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="card settings-pane" id="pane-shortcuts">
-      <div class="settings-section">
-        <h4 data-i18n="shortcutsTitle">Keyboard shortcuts</h4>
-        <p class="settings-desc" data-i18n="shortcutsDesc">Work faster without touching the mouse.</p>
-        <div class="kbd-list">
-          <div class="kbd-item"><span class="kbd-desc" data-i18n="shortcutGen">Generate code</span><span class="kbd-keys"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></span></div>
-          <div class="kbd-item"><span class="kbd-desc" data-i18n="shortcutCopy">Copy generated code</span><span class="kbd-keys"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd></span></div>
-          <div class="kbd-item"><span class="kbd-desc" data-i18n="shortcutFocus">Focus command box</span><span class="kbd-keys"><kbd>/</kbd></span></div>
-          <div class="kbd-item"><span class="kbd-desc" data-i18n="shortcutClose">Close dialog / dropdown</span><span class="kbd-keys"><kbd>Esc</kbd></span></div>
+    <div class="card">
+      <div class="settings-section" style="border-bottom:none; padding-bottom:0; margin-bottom:0;">
+        <h4>Data &amp; Privacy</h4>
+        <p class="settings-desc">Export or reset the data Code2MCU keeps on this device.</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn-white" onclick="exportData()">⬇️ Export my data</button>
+          <button class="btn-white" style="color:#dc2626; border-color:#dc2626;" onclick="resetAppData()">🗑️ Reset app data</button>
         </div>
       </div>
     </div>
 
-    <div class="card settings-pane" id="pane-privacy">
-      <div class="settings-section">
-        <h4 data-i18n="exportTitle">Export data</h4>
-        <p class="settings-desc" data-i18n="exportDesc">Download your generation history as a JSON file.</p>
-        <button class="btn-white" onclick="exportHistory()" data-i18n="exportBtn">⬇️ Export history (.json)</button>
-      </div>
-      <div class="settings-section">
-        <h4 data-i18n="dangerTitle">Danger zone</h4>
-        <div class="danger-box">
-          <div><b data-i18n="resetTitle">Reset all local data</b><span data-i18n="resetDesc">Clears history, preferences, theme and your session on this browser</span></div>
-          <button class="btn-danger" onclick="resetAllData()" data-i18n="resetBtn">Reset everything</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="card settings-pane" id="pane-about">
-      <div class="settings-section">
-        <div class="about-box">
-          <div>
-            <h4 style="margin-bottom:2px;">Code2MCU</h4>
-            <span class="about-version" id="aboutVersion">Version 1.0.0</span>
-          </div>
-          <button class="btn-white" onclick="checkForUpdates()" data-i18n="checkUpdatesBtn">🔄 Check for updates</button>
-        </div>
-      </div>
-      <div class="settings-section">
-        <h4 data-i18n="storageTitle">Preferences storage</h4>
-        <p class="settings-desc" data-i18n="storageDesc">All settings, history and your session are stored locally in this browser — nothing is sent to a server except your generate/compile/flash requests.</p>
+    <div class="card">
+      <div class="settings-section" style="border-bottom:none; padding-bottom:0; margin-bottom:0;">
+        <h4>About</h4>
+        <p class="settings-desc">Code2MCU v1.0.0</p>
+        <button class="btn-white" onclick="checkForUpdates()">🔄 Check for updates</button>
       </div>
     </div>
   </div>
@@ -807,219 +680,18 @@
 <div class="bottombar">
   <b>Code2MCU</b> v1.0.0
   <span class="sep">|</span>
-  <span data-i18n="bottomTagline">Build • Code • Flash • Create</span>
+  Build • Code • Flash • Create
   <div class="push">
     <span id="bottomStatus">● Checking...</span>
     <span id="bottomReady">—</span>
   </div>
 </div>
 
-<div class="settings-toast" id="settingsToast"></div>
-
 <script>
 let currentCode = "";
 let ports = [];
 let portsPollTimer = null;
 let boardPort = null; // the specific port we treat as "the board" — tracked by plug/unplug events, not just list order
-
-// ---- i18n ----
-const I18N = {
-  en: {
-    tagline: "Natural language to Arduino",
-    navHome: "Home", navHistory: "History", navExamples: "Examples", navBoards: "Boards", navSerial: "Serial Monitor", navSettings: "Settings",
-    sideTipTitle: "💡 New to Arduino?", sideTipText: "Try example commands to get started.",
-    loginBtn: "Log in", ddProfile: "👤 Profile", ddLogout: "🚪 Log out",
-    loginTitle: "Welcome back", loginSub: "Log in to your Code2MCU account.",
-    labelEmail: "Email", labelPassword: "Password", btnCancel: "Cancel",
-    noAccount: "Don't have an account?", signupLink: "Sign up",
-    signupTitle: "Create account", signupSub: "Sign up to start using Code2MCU.",
-    labelName: "Name", signupBtn: "Sign up", haveAccount: "Already have an account?",
-    profileStatGen: "Generated", profileStatBoard: "Fav. Board", profileStatFlash: "Flashes",
-    profileDefaultBoard: "Default board", profileTheme: "Theme", profileEditName: "✏️ Edit name", profileClose: "Close",
-    connConnected: "Connected", noBoard: "No board",
-    promptCardTitle: "What do you want to do?", commandPlaceholder: "Blink the LED on pin 13 with 1 second delay",
-    genBtn: "✨ Generate Code", tryExamples: "Try these examples:",
-    chipBlink: "Blink LED", chipTemp: "Read temperature (LM35)", chipServo: "Control servo motor", chipButton: "Read button",
-    genCodeTitle: "Generated Code (Arduino C++)", copyBtn: "📋 Copy",
-    compileBtn: "⚙️ Compile", flashBtn: "⚡ Flash to Board", autoScroll: "Auto scroll logs",
-    uploadStatusTitle: "📶 Upload Status",
-    stepGen: "Code generated", stepCompile: "Compilation successful", stepUpload: "Uploading to board", stepDone: "Done", waiting: "Waiting...",
-    miniSerialTitle: "📟 Serial Monitor", clearBtn: "Clear",
-    examplesCardTitle: "📖 Example commands", examplesCardDesc: "Pick one to load it into the prompt box and jump straight to Generate.",
-    exTitleBlink: "Blink LED", exDescBlink: "Blink the LED on pin 13 with a 1 second delay.",
-    exTitleTemp: "Read Temperature", exDescTemp: "Read temperature from an LM35 sensor on pin A0.",
-    exTitleServo: "Control Servo Motor", exDescServo: "Sweep a servo motor connected to pin 9.",
-    exTitleButton: "Read Button", exDescButton: "Read the state of a push button on pin 7.",
-    exTitleRgb: "RGB LED Fade", exDescRgb: "Fade an RGB LED through colors on pins 9, 10 and 11.",
-    exTitleUltra: "Ultrasonic Distance", exDescUltra: "Measure distance with an HC-SR04 sensor on pins 6 and 7.",
-    exTitleBuzzer: "Buzzer Alarm", exDescBuzzer: "Sound a buzzer on pin 8 when a button on pin 2 is pressed.",
-    exTitleMotion: "Motion Sensor", exDescMotion: "Detect motion with a PIR sensor on pin 4 and light an LED on pin 13.",
-    useThis: "Use this →",
-    historyCardTitle: "🕘 Generation history", clearHistoryBtn: "Clear history",
-    historyCardDesc: "Every command you've generated code for, most recent first. Reload any of them straight back into the editor.",
-    historyEmpty: "No generations yet — anything you generate on the Home screen will show up here.",
-    boardsCardTitle: "🔲 Supported boards", boardsCardDesc: "Selecting a board here updates it everywhere in the app.",
-    tagBeginner: "Beginner friendly", specUno: "ATmega328P · 5V logic · 14 digital / 6 analog pins",
-    tagWifi: "Wi-Fi & BLE", specEsp32: "Dual-core · Wi-Fi + Bluetooth · 3.3V logic",
-    tagCompact: "Compact Wi-Fi", specEsp8266: "Single-core · Wi-Fi · 3.3V logic",
-    tagLinux: "Full Linux SBC", specRpi: "GPIO pins · Wi-Fi + Bluetooth · Runs full Linux OS",
-    selectBoardBtn: "Select this board",
-    portsCardTitle: "🔌 Detected ports", refreshBtn: "Refresh", checkingPorts: "Checking for connected boards...",
-    noPortsDetected: "No board detected. Plug in a board and hit Refresh.",
-    liveSerialTitle: "📟 Live Serial Console",
-    statPortLabel: "Active port", statLinesLabel: "Lines logged", statUptimeLabel: "Session time",
-    serialSendPlaceholder: "Type data to send to the board and press Enter…", sendBtn: "➤ Send",
-    tabGeneral: "General", tabAccount: "Account", tabGeneration: "Code Generation", tabNotifications: "Notifications",
-    tabEditor: "Editor", tabShortcuts: "Shortcuts", tabPrivacy: "Data & Privacy", tabAbout: "About",
-    appearanceTitle: "Appearance", appearanceDesc: "Choose how Code2MCU looks.",
-    themeLight: "☀️ Light", themeDark: "🌙 Dark",
-    defaultBoardTitle: "Default board", defaultBoardDesc: "Used to pre-select a board whenever you open Code2MCU.",
-    languageTitle: "Language", languageDesc: "Interface language preference.",
-    serialMonTitle: "Serial Monitor", serialMonDesc: "Control how the log panel behaves.", clearLogBtn: "Clear log",
-    accountTitle: "Account", accountLoggedOutDesc: "Log in to sync your history and preferences across devices.",
-    loginSignupBtn: "Log in / Sign up", editNameBtn: "✏️ Edit display name",
-    sessionTitle: "Session", sessionDesc: "You're signed in on this browser only. Logging out clears your local session.",
-    codeStyleTitle: "Code style", codeStyleDesc: "Controls how generated Arduino sketches are written.",
-    addCommentsTitle: "Add explanatory comments", addCommentsDesc: "Include inline // comments in generated code",
-    safetyChecksTitle: "Include safety checks", safetyChecksDesc: "Add bounds checks & debounce where relevant",
-    creativityTitle: "Creativity", creativityDesc: "Lower = more predictable code, higher = more variation in approach.",
-    notifTitle: "Notifications", notifDesc: "Get notified when a generate / compile / flash job finishes.",
-    soundNotifTitle: "Sound on completion", soundNotifDesc: "Play a short tone when a job succeeds or fails",
-    desktopNotifTitle: "Desktop notifications", desktopNotifDesc: "Show a system notification for compile/flash results",
-    fontSizeTitle: "Code editor font size", fontSizeDesc: "Adjusts the size of the generated code panel.",
-    defaultBaudTitle: "Default baud rate", defaultBaudDesc: "Used to pre-select the baud rate in the Serial Monitor.",
-    shortcutsTitle: "Keyboard shortcuts", shortcutsDesc: "Work faster without touching the mouse.",
-    shortcutGen: "Generate code", shortcutCopy: "Copy generated code", shortcutFocus: "Focus command box", shortcutClose: "Close dialog / dropdown",
-    exportTitle: "Export data", exportDesc: "Download your generation history as a JSON file.", exportBtn: "⬇️ Export history (.json)",
-    dangerTitle: "Danger zone", resetTitle: "Reset all local data",
-    resetDesc: "Clears history, preferences, theme and your session on this browser", resetBtn: "Reset everything",
-    checkUpdatesBtn: "🔄 Check for updates",
-    storageTitle: "Preferences storage",
-    storageDesc: "All settings, history and your session are stored locally in this browser — nothing is sent to a server except your generate/compile/flash requests.",
-    bottomTagline: "Build • Code • Flash • Create",
-    viewTitleHome: "Turn Your Ideas into Code", viewSubHome: "Describe what you want to do, and we'll generate, compile, and flash it to your Arduino.",
-    viewTitleHistory: "History", viewSubHistory: "Everything you've generated before — reload any past command back into the editor.",
-    viewTitleExamples: "Examples", viewSubExamples: "Pick a ready-made command to try on your board.",
-    viewTitleBoards: "Boards", viewSubBoards: "Choose which microcontroller you're working with.",
-    viewTitleSerial: "Serial Monitor", viewSubSerial: "Live device output, connection stats, and a two-way console for your board.",
-    viewTitleSettings: "Settings", viewSubSettings: "Adjust how Code2MCU looks and behaves."
-  },
-  hi: {
-    tagline: "नैचुरल लैंग्वेज से आर्डुइनो कोड",
-    navHome: "होम", navHistory: "हिस्ट्री", navExamples: "उदाहरण", navBoards: "बोर्ड्स", navSerial: "सीरियल मॉनिटर", navSettings: "सेटिंग्स",
-    sideTipTitle: "💡 आर्डुइनो में नए हैं?", sideTipText: "शुरू करने के लिए उदाहरण कमांड आज़माएं।",
-    loginBtn: "लॉग इन", ddProfile: "👤 प्रोफाइल", ddLogout: "🚪 लॉग आउट",
-    loginTitle: "वापसी पर स्वागत है", loginSub: "अपने Code2MCU खाते में लॉग इन करें।",
-    labelEmail: "ईमेल", labelPassword: "पासवर्ड", btnCancel: "रद्द करें",
-    noAccount: "खाता नहीं है?", signupLink: "साइन अप करें",
-    signupTitle: "खाता बनाएं", signupSub: "Code2MCU का उपयोग शुरू करने के लिए साइन अप करें।",
-    labelName: "नाम", signupBtn: "साइन अप", haveAccount: "पहले से खाता है?",
-    profileStatGen: "जनरेट किए", profileStatBoard: "पसंदीदा बोर्ड", profileStatFlash: "फ्लैश",
-    profileDefaultBoard: "डिफ़ॉल्ट बोर्ड", profileTheme: "थीम", profileEditName: "✏️ नाम बदलें", profileClose: "बंद करें",
-    connConnected: "कनेक्टेड", noBoard: "कोई बोर्ड नहीं",
-    promptCardTitle: "आप क्या करना चाहते हैं?", commandPlaceholder: "पिन 13 पर LED को 1 सेकंड डिले के साथ ब्लिंक करें",
-    genBtn: "✨ कोड जनरेट करें", tryExamples: "ये उदाहरण आज़माएं:",
-    chipBlink: "LED ब्लिंक करें", chipTemp: "तापमान पढ़ें (LM35)", chipServo: "सर्वो मोटर कंट्रोल करें", chipButton: "बटन पढ़ें",
-    genCodeTitle: "जनरेट किया गया कोड (Arduino C++)", copyBtn: "📋 कॉपी करें",
-    compileBtn: "⚙️ कंपाइल करें", flashBtn: "⚡ बोर्ड पर फ्लैश करें", autoScroll: "लॉग ऑटो स्क्रॉल करें",
-    uploadStatusTitle: "📶 अपलोड स्टेटस",
-    stepGen: "कोड जनरेट हुआ", stepCompile: "कंपाइलेशन सफल", stepUpload: "बोर्ड पर अपलोड हो रहा है", stepDone: "पूर्ण", waiting: "प्रतीक्षा में...",
-    miniSerialTitle: "📟 सीरियल मॉनिटर", clearBtn: "साफ करें",
-    examplesCardTitle: "📖 उदाहरण कमांड", examplesCardDesc: "किसी एक को चुनें ताकि वह प्रॉम्प्ट बॉक्स में आ जाए और सीधे जनरेट पर जाएं।",
-    exTitleBlink: "LED ब्लिंक करें", exDescBlink: "पिन 13 पर LED को 1 सेकंड डिले के साथ ब्लिंक करें।",
-    exTitleTemp: "तापमान पढ़ें", exDescTemp: "पिन A0 पर लगे LM35 सेंसर से तापमान पढ़ें।",
-    exTitleServo: "सर्वो मोटर कंट्रोल करें", exDescServo: "पिन 9 से जुड़े सर्वो मोटर को घुमाएं।",
-    exTitleButton: "बटन पढ़ें", exDescButton: "पिन 7 पर लगे पुश बटन की स्थिति पढ़ें।",
-    exTitleRgb: "RGB LED फेड", exDescRgb: "पिन 9, 10 और 11 पर RGB LED को रंगों में फेड करें।",
-    exTitleUltra: "अल्ट्रासोनिक दूरी", exDescUltra: "पिन 6 और 7 पर HC-SR04 सेंसर से दूरी मापें।",
-    exTitleBuzzer: "बज़र अलार्म", exDescBuzzer: "पिन 2 पर बटन दबाने पर पिन 8 पर बज़र बजाएं।",
-    exTitleMotion: "मोशन सेंसर", exDescMotion: "पिन 4 पर PIR सेंसर से मोशन पहचानें और पिन 13 पर LED जलाएं।",
-    useThis: "इसे उपयोग करें →",
-    historyCardTitle: "🕘 जनरेशन हिस्ट्री", clearHistoryBtn: "हिस्ट्री साफ करें",
-    historyCardDesc: "आपके द्वारा जनरेट किया हर कमांड, सबसे नया सबसे ऊपर। किसी को भी वापस एडिटर में लोड करें।",
-    historyEmpty: "अभी तक कुछ जनरेट नहीं हुआ — होम स्क्रीन पर जो भी जनरेट करेंगे वह यहां दिखेगा।",
-    boardsCardTitle: "🔲 सपोर्टेड बोर्ड्स", boardsCardDesc: "यहां बोर्ड चुनने पर यह पूरे ऐप में अपडेट हो जाएगा।",
-    tagBeginner: "बिगिनर फ्रेंडली", specUno: "ATmega328P · 5V लॉजिक · 14 डिजिटल / 6 एनालॉग पिन",
-    tagWifi: "Wi-Fi और BLE", specEsp32: "ड्यूल-कोर · Wi-Fi + ब्लूटूथ · 3.3V लॉजिक",
-    tagCompact: "कॉम्पैक्ट Wi-Fi", specEsp8266: "सिंगल-कोर · Wi-Fi · 3.3V लॉजिक",
-    tagLinux: "फुल लिनक्स SBC", specRpi: "GPIO पिन · Wi-Fi + ब्लूटूथ · फुल लिनक्स OS चलाता है",
-    selectBoardBtn: "यह बोर्ड चुनें",
-    portsCardTitle: "🔌 डिटेक्ट किए गए पोर्ट्स", refreshBtn: "रिफ्रेश करें", checkingPorts: "कनेक्टेड बोर्ड्स की जांच हो रही है...",
-    noPortsDetected: "कोई बोर्ड नहीं मिला। बोर्ड लगाएं और रिफ्रेश दबाएं।",
-    liveSerialTitle: "📟 लाइव सीरियल कंसोल",
-    statPortLabel: "सक्रिय पोर्ट", statLinesLabel: "लॉग हुई लाइनें", statUptimeLabel: "सेशन समय",
-    serialSendPlaceholder: "बोर्ड को भेजने के लिए डेटा टाइप करें और Enter दबाएं…", sendBtn: "➤ भेजें",
-    tabGeneral: "सामान्य", tabAccount: "खाता", tabGeneration: "कोड जनरेशन", tabNotifications: "नोटिफिकेशन",
-    tabEditor: "एडिटर", tabShortcuts: "शॉर्टकट्स", tabPrivacy: "डेटा और प्राइवेसी", tabAbout: "इसके बारे में",
-    appearanceTitle: "दिखावट", appearanceDesc: "Code2MCU कैसा दिखे, यह चुनें।",
-    themeLight: "☀️ लाइट", themeDark: "🌙 डार्क",
-    defaultBoardTitle: "डिफ़ॉल्ट बोर्ड", defaultBoardDesc: "जब भी आप Code2MCU खोलें, तो यह बोर्ड पहले से चुना रहेगा।",
-    languageTitle: "भाषा", languageDesc: "इंटरफ़ेस की भाषा प्राथमिकता।",
-    serialMonTitle: "सीरियल मॉनिटर", serialMonDesc: "लॉग पैनल कैसे व्यवहार करे, यह नियंत्रित करें।", clearLogBtn: "लॉग साफ करें",
-    accountTitle: "खाता", accountLoggedOutDesc: "अपनी हिस्ट्री और प्राथमिकताओं को सभी डिवाइस पर सिंक करने के लिए लॉग इन करें।",
-    loginSignupBtn: "लॉग इन / साइन अप", editNameBtn: "✏️ प्रदर्शित नाम बदलें",
-    sessionTitle: "सेशन", sessionDesc: "आप केवल इस ब्राउज़र पर साइन इन हैं। लॉग आउट करने पर आपका लोकल सेशन साफ हो जाएगा।",
-    codeStyleTitle: "कोड स्टाइल", codeStyleDesc: "यह नियंत्रित करता है कि जनरेट किया गया Arduino कोड कैसे लिखा जाए।",
-    addCommentsTitle: "व्याख्यात्मक कमेंट जोड़ें", addCommentsDesc: "जनरेट किए कोड में इनलाइन // कमेंट शामिल करें",
-    safetyChecksTitle: "सुरक्षा जांच शामिल करें", safetyChecksDesc: "जहां जरूरी हो वहां बाउंड्स चेक और डिबाउंस जोड़ें",
-    creativityTitle: "क्रिएटिविटी", creativityDesc: "कम = अधिक अनुमानित कोड, अधिक = अधिक विविधता।",
-    notifTitle: "नोटिफिकेशन", notifDesc: "जब जनरेट / कंपाइल / फ्लैश जॉब पूरा हो तो सूचित करें।",
-    soundNotifTitle: "पूर्ण होने पर ध्वनि", soundNotifDesc: "जॉब सफल या विफल होने पर एक छोटी ध्वनि बजाएं",
-    desktopNotifTitle: "डेस्कटॉप नोटिफिकेशन", desktopNotifDesc: "कंपाइल/फ्लैश परिणामों के लिए सिस्टम नोटिफिकेशन दिखाएं",
-    fontSizeTitle: "कोड एडिटर फॉन्ट साइज़", fontSizeDesc: "जनरेट किए कोड पैनल का साइज़ समायोजित करें।",
-    defaultBaudTitle: "डिफ़ॉल्ट बॉड रेट", defaultBaudDesc: "सीरियल मॉनिटर में बॉड रेट पहले से चुनने के लिए उपयोग होता है।",
-    shortcutsTitle: "कीबोर्ड शॉर्टकट्स", shortcutsDesc: "माउस छुए बिना तेज़ी से काम करें।",
-    shortcutGen: "कोड जनरेट करें", shortcutCopy: "जनरेट किया कोड कॉपी करें", shortcutFocus: "कमांड बॉक्स फोकस करें", shortcutClose: "डायलॉग / ड्रॉपडाउन बंद करें",
-    exportTitle: "डेटा एक्सपोर्ट करें", exportDesc: "अपनी जनरेशन हिस्ट्री को JSON फाइल के रूप में डाउनलोड करें।", exportBtn: "⬇️ हिस्ट्री एक्सपोर्ट करें (.json)",
-    dangerTitle: "डेंजर ज़ोन", resetTitle: "सारा लोकल डेटा रीसेट करें",
-    resetDesc: "इस ब्राउज़र पर हिस्ट्री, प्राथमिकताएं, थीम और आपका सेशन साफ करता है", resetBtn: "सब कुछ रीसेट करें",
-    checkUpdatesBtn: "🔄 अपडेट के लिए जांचें",
-    storageTitle: "प्राथमिकताएं स्टोरेज",
-    storageDesc: "सभी सेटिंग्स, हिस्ट्री और आपका सेशन इसी ब्राउज़र में स्थानीय रूप से स्टोर होते हैं — आपके जनरेट/कंपाइल/फ्लैश रिक्वेस्ट के अलावा कुछ भी सर्वर पर नहीं भेजा जाता।",
-    bottomTagline: "बनाएं • कोड करें • फ्लैश करें • रचें",
-    viewTitleHome: "अपने आइडिया को कोड में बदलें", viewSubHome: "बताएं आप क्या करना चाहते हैं, हम इसे जनरेट, कंपाइल और आपके आर्डुइनो पर फ्लैश करेंगे।",
-    viewTitleHistory: "हिस्ट्री", viewSubHistory: "अब तक आपने जो कुछ भी जनरेट किया है — किसी भी पुराने कमांड को वापस एडिटर में लोड करें।",
-    viewTitleExamples: "उदाहरण", viewSubExamples: "अपने बोर्ड पर आज़माने के लिए एक तैयार कमांड चुनें।",
-    viewTitleBoards: "बोर्ड्स", viewSubBoards: "चुनें कि आप किस माइक्रोकंट्रोलर पर काम कर रहे हैं।",
-    viewTitleSerial: "सीरियल मॉनिटर", viewSubSerial: "लाइव डिवाइस आउटपुट, कनेक्शन स्टैट्स, और आपके बोर्ड के लिए दो-तरफा कंसोल।",
-    viewTitleSettings: "सेटिंग्स", viewSubSettings: "Code2MCU कैसा दिखे और व्यवहार करे, यह समायोजित करें।"
-  }
-};
-
-function applyLanguage(lang) {
-  const dict = I18N[lang] || I18N.en;
-  document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.getAttribute("data-i18n");
-    if (dict[key] !== undefined) el.textContent = dict[key];
-  });
-  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
-    const key = el.getAttribute("data-i18n-placeholder");
-    if (dict[key] !== undefined) el.setAttribute("placeholder", dict[key]);
-  });
-  document.documentElement.setAttribute("lang", lang === "hi" ? "hi" : "en");
-  // Refresh the current view's title/subtitle and any dynamically rendered lists
-  refreshCurrentViewTitle();
-  renderHistory();
-  renderPortsList();
-}
-
-function refreshCurrentViewTitle() {
-  const activeView = document.querySelector(".view.active");
-  if (!activeView) return;
-  const id = activeView.id.replace("view-", "");
-  const dict = I18N[prefs.language] || I18N.en;
-  const map = {
-    home: ["viewTitleHome", "viewSubHome"],
-    history: ["viewTitleHistory", "viewSubHistory"],
-    examples: ["viewTitleExamples", "viewSubExamples"],
-    boards: ["viewTitleBoards", "viewSubBoards"],
-    serial: ["viewTitleSerial", "viewSubSerial"],
-    settings: ["viewTitleSettings", "viewSubSettings"]
-  };
-  const keys = map[id] || map.home;
-  document.getElementById("viewTitle").textContent = dict[keys[0]];
-  document.getElementById("viewSubtitle").textContent = dict[keys[1]];
-}
 
 // ---- Theme (light/dark) ----
 function applyTheme(theme) {
@@ -1061,7 +733,9 @@ function switchView(view, navEl) {
   document.getElementById("view-" + view).classList.add("active");
   document.querySelectorAll("nav a").forEach(a => a.classList.remove("active"));
   if (navEl) navEl.classList.add("active");
-  refreshCurrentViewTitle();
+  const info = VIEW_INFO[view] || VIEW_INFO.home;
+  document.getElementById("viewTitle").textContent = info[0];
+  document.getElementById("viewSubtitle").textContent = info[1];
 }
 function focusSerialMonitor() {
   const card = document.getElementById("terminal").closest(".card");
@@ -1085,18 +759,17 @@ function syncBoardFromSettings() {
   document.getElementById("boardSelect").value = document.getElementById("defaultBoardSelect").value;
   onBoardChange();
 }
+function syncBaudFromSettings() {
+  const baud = document.getElementById("defaultBaudSelect").value;
+  try { localStorage.setItem("code2mcu-default-baud", baud); } catch (e) {}
+  const baudSel = document.getElementById("baudSelect");
+  if (baudSel) baudSel.value = baud;
+  log("Default baud rate set to " + baud + ".");
+}
 function highlightCurrentBoard(board) {
   document.querySelectorAll(".board-card").forEach(c => c.classList.remove("current"));
   const card = document.getElementById("boardCard-" + board);
   if (card) card.classList.add("current");
-}
-
-// ---- Settings sub-navigation ----
-function switchSettingsPane(pane, btnEl) {
-  document.querySelectorAll(".settings-pane").forEach(p => p.classList.remove("active"));
-  document.getElementById("pane-" + pane).classList.add("active");
-  document.querySelectorAll(".settings-nav-btn").forEach(b => b.classList.remove("active"));
-  if (btnEl) btnEl.classList.add("active");
 }
 
 let logLineCount = 0;
@@ -1144,11 +817,16 @@ function onBoardChange() {
   const board = document.getElementById("boardSelect").value;
   const defSel = document.getElementById("defaultBoardSelect");
   if (defSel) defSel.value = board;
+  try { localStorage.setItem("code2mcu-default-board", board); } catch (e) {}
   highlightCurrentBoard(board);
   log("Board changed to: " + board);
 }
 
 // ---- Ports: auto-sense connect / disconnect ----
+// We don't just trust whatever the <select> happens to default to — we track
+// the exact port that was plugged in (boardPort). If that specific port
+// disappears, status goes to "Disconnected" immediately, even if other
+// unrelated ports (e.g. COM3/COM4) are still present on the system.
 async function loadPorts(silent) {
   try {
     const res = await fetch("/ports");
@@ -1162,15 +840,19 @@ async function loadPorts(silent) {
       removed.forEach(p => log("⚠️ Board disconnected from " + p));
     }
 
+    // The board we were tracking just vanished -> immediately mark disconnected.
     if (boardPort && removed.includes(boardPort)) {
       boardPort = null;
     }
+    // A new port just appeared and we weren't tracking one -> treat it as the board.
     if (!boardPort && added.length) {
       boardPort = added[added.length - 1];
     }
+    // First load with nothing tracked yet: if exactly one port exists, assume it's the board.
     if (!boardPort && ports.length === 0 && newPorts.length === 1) {
       boardPort = newPorts[0];
     }
+    // Safety net: if boardPort is set but somehow isn't in the current list, drop it.
     if (boardPort && !newPorts.includes(boardPort)) {
       boardPort = null;
     }
@@ -1183,6 +865,7 @@ async function loadPorts(silent) {
     updateStatus();
   } catch (e) {
     if (!silent) log("Could not load ports: " + e);
+    // Backend unreachable — treat as no board connected rather than leaving a stale "Connected" state.
     if (boardPort) log("⚠️ Board disconnected from " + boardPort);
     boardPort = null;
     ports = [];
@@ -1191,6 +874,7 @@ async function loadPorts(silent) {
   }
 }
 document.getElementById("portSelect").onchange = function () {
+  // Manual override: whatever the user picks becomes the tracked board port.
   boardPort = this.value || null;
   updateStatus();
 };
@@ -1198,15 +882,13 @@ document.getElementById("portSelect").onchange = function () {
 function renderPortsList() {
   const list = document.getElementById("portsList");
   if (!list) return;
-  const dict = I18N[prefs.language] || I18N.en;
   list.innerHTML = ports.length
     ? ports.map(p => `<span class="port-chip">${p === boardPort ? "🟢" : "⚪"} ${escapeHtml(p)}${p === boardPort ? " (board)" : ""}</span>`).join("")
-    : dict.noPortsDetected;
+    : "No board detected. Plug in a board and hit Refresh.";
 }
 
 function updateStatus() {
   const port = boardPort || "";
-  const dict = I18N[prefs.language] || I18N.en;
   const pill = document.getElementById("connStatus");
   const serialPill = document.getElementById("serialStatusPill");
   const bottomStatus = document.getElementById("bottomStatus");
@@ -1214,14 +896,14 @@ function updateStatus() {
   const statPort = document.getElementById("statPort");
   if (port) {
     pill.className = "status-pill";
-    pill.innerHTML = `<span class="dot"></span> ${dict.connConnected}`;
-    if (serialPill) { serialPill.className = "status-pill"; serialPill.innerHTML = `<span class="dot"></span> ${dict.connConnected}`; }
+    pill.innerHTML = `<span class="dot"></span> Connected`;
+    if (serialPill) { serialPill.className = "status-pill"; serialPill.innerHTML = `<span class="dot"></span> Connected`; }
     bottomStatus.textContent = "● Board on " + port;
     bottomReady.textContent = "Ready";
   } else {
     pill.className = "status-pill off";
-    pill.innerHTML = `<span class="dot"></span> ${dict.noBoard}`;
-    if (serialPill) { serialPill.className = "status-pill off"; serialPill.innerHTML = `<span class="dot"></span> ${dict.noBoard}`; }
+    pill.innerHTML = `<span class="dot"></span> No board`;
+    if (serialPill) { serialPill.className = "status-pill off"; serialPill.innerHTML = `<span class="dot"></span> No board`; }
     bottomStatus.textContent = "○ Not connected";
     bottomReady.textContent = "";
   }
@@ -1229,11 +911,16 @@ function updateStatus() {
   document.getElementById("flashBtn").disabled = !port;
 }
 
+// Poll the backend every 2s so unplugging/replugging the board is picked up
+// automatically, without the user having to hit "Refresh".
 function startPortsPolling() {
   if (portsPollTimer) clearInterval(portsPollTimer);
   portsPollTimer = setInterval(() => loadPorts(false), 2000);
 }
 
+// If the browser exposes the WebSerial API (Chrome/Edge), also listen for the
+// OS-level connect/disconnect events so status updates instantly rather than
+// waiting for the next poll tick.
 function setupWebSerialWatcher() {
   if (navigator.serial) {
     navigator.serial.addEventListener("connect", () => { log("USB device connected — checking ports..."); loadPorts(false); });
@@ -1248,10 +935,7 @@ function setStep(n, state, sub) {
   dot.textContent = state === "done" ? "✓" : state === "fail" ? "✕" : "○";
   if (sub) subEl.textContent = sub;
 }
-function resetPipeline() {
-  const dict = I18N[prefs.language] || I18N.en;
-  [1,2,3,4].forEach(n => setStep(n, "", dict.waiting));
-}
+function resetPipeline() { [1,2,3,4].forEach(n => setStep(n, "", "Waiting...")); }
 
 function escapeHtml(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function highlight(code) {
@@ -1278,46 +962,39 @@ async function generateCode() {
   if (!command) return;
   resetPipeline();
   document.getElementById("inlineMsg").textContent = "";
-  const dict = I18N[prefs.language] || I18N.en;
-  setStep(1, "active", (prefs.language === "hi" ? "जनरेट हो रहा है..." : "Generating..."));
+  setStep(1, "active", "Generating...");
   log("Generating code for: " + command);
   try {
     const res = await fetch("/generate", {
       method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        command,
-        code_style: prefs.codeStyle,
-        add_comments: prefs.addComments,
-        safety_checks: prefs.safetyChecks
-      })
+      body: JSON.stringify({ command })
     });
     const data = await res.json();
     if (data.error) {
-      setStep(1, "fail", (prefs.language === "hi" ? "ब्लॉक किया गया" : "Blocked"));
+      setStep(1, "fail", "Blocked");
       const m = document.getElementById("inlineMsg");
       m.className = "inline-msg err";
       m.textContent = "🚫 " + data.error;
       log("BLOCKED: " + data.error);
-      notifyResult(false, "Generation blocked", data.error);
       return;
     }
     currentCode = data.code;
     renderCode(currentCode);
-    setStep(1, "done", (prefs.language === "hi" ? "अभी-अभी" : "Just now"));
+    setStep(1, "done", "Just now");
     log("Code generated successfully.");
-    notifyResult(true, "Code generated", command);
+    playCompletionSound();
+    showDesktopNotification("Code2MCU", "Code generated for: " + command);
     addToHistory(command, currentCode, document.getElementById("boardSelect").value);
   } catch (e) {
-    setStep(1, "fail", (prefs.language === "hi" ? "त्रुटि" : "Error"));
+    setStep(1, "fail", "Error");
     log("Generate failed: " + e);
-    notifyResult(false, "Generation failed", String(e));
   }
 }
 
 async function compileCode() {
   if (!currentCode) { log("Generate code first."); return; }
   const board = document.getElementById("boardSelect").value;
-  setStep(2, "active", (prefs.language === "hi" ? "कंपाइल हो रहा है..." : "Compiling..."));
+  setStep(2, "active", "Compiling...");
   log("Compiling sketch for " + board + "...");
   const start = performance.now();
   try {
@@ -1328,26 +1005,38 @@ async function compileCode() {
     const data = await res.json();
     const secs = ((performance.now() - start) / 1000).toFixed(1);
     if (data.compile_success) {
-      setStep(2, "done", (prefs.language === "hi" ? "बिल्ड " + secs + "सेकंड में पूर्ण" : "Build completed in " + secs + "s"));
+      setStep(2, "done", "Build completed in " + secs + "s");
       log("Compile successful:\n" + data.compile_output);
-      notifyResult(true, "Compile successful", "Built in " + secs + "s");
+      if (data.firmware_ready && data.firmware_files && data.firmware_files.length) {
+        lastFirmware = { files: data.firmware_files, board: data.board, fileType: data.file_type };
+        log("Firmware ready: " + data.firmware_files.join(", "));
+      } else {
+        lastFirmware = null;
+      }
     } else {
-      setStep(2, "fail", (prefs.language === "hi" ? "बिल्ड विफल" : "Build failed"));
+      setStep(2, "fail", "Build failed");
       log("Compile FAILED:\n" + data.compile_output);
-      notifyResult(false, "Compile failed", "Check the logs for details");
+      lastFirmware = null;
     }
   } catch (e) {
-    setStep(2, "fail", (prefs.language === "hi" ? "त्रुटि" : "Error"));
+    setStep(2, "fail", "Error");
     log("Compile error: " + e);
-    notifyResult(false, "Compile error", String(e));
+    lastFirmware = null;
   }
 }
 
 async function flashCode() {
-  const port = document.getElementById("portSelect").value;
   const board = document.getElementById("boardSelect").value;
-  if (!port) { log("No port selected."); return; }
-  setStep(3, "active", (prefs.language === "hi" ? "फर्मवेयर अपलोड हो रहा है..." : "Uploading firmware..."));
+  // If a board is connected directly via Web Serial (browser-native, no backend
+  // COM-port dependency), flash straight from the browser instead of asking the
+  // backend to talk to a local COM port.
+  if (webSerialPort) {
+    await flashViaWebSerial(board);
+    return;
+  }
+  const port = document.getElementById("portSelect").value;
+  if (!port) { log("No port selected. Connect a board via Web Serial, or select a local COM port."); return; }
+  setStep(3, "active", "Uploading firmware...");
   log("Flashing to " + port + "...");
   try {
     const res = await fetch("/flash", {
@@ -1356,20 +1045,175 @@ async function flashCode() {
     });
     const data = await res.json();
     if (data.upload_success) {
-      setStep(3, "done", (prefs.language === "hi" ? port + " पर अपलोड हुआ" : "Uploaded to " + port));
-      setStep(4, "done", (prefs.language === "hi" ? "कोड सफलतापूर्वक फ्लैश हुआ!" : "Code flashed successfully!"));
+      setStep(3, "done", "Uploaded to " + port);
+      setStep(4, "done", "Code flashed successfully!");
       log("Flash successful:\n" + data.upload_output);
       log("--- Serial Monitor (" + port + ") ---\nDevice ready.\nFirmware running.");
-      notifyResult(true, "Flashed successfully", "Uploaded to " + port);
+      playCompletionSound();
+      showDesktopNotification("Code2MCU", "Flashed successfully to " + port + ".");
     } else {
-      setStep(3, "fail", (prefs.language === "hi" ? "अपलोड विफल" : "Upload failed"));
+      setStep(3, "fail", "Upload failed");
       log("Flash FAILED:\n" + data.upload_output);
-      notifyResult(false, "Flash failed", "Check the logs for details");
     }
   } catch (e) {
-    setStep(3, "fail", (prefs.language === "hi" ? "त्रुटि" : "Error"));
+    setStep(3, "fail", "Error");
     log("Flash error: " + e);
-    notifyResult(false, "Flash error", String(e));
+  }
+}
+
+// ---- Web Serial: direct browser-to-board connect & flash (no backend / arduino-cli needed to detect the port) ----
+let webSerialPort = null;
+let lastFirmware = null; // { files, board, fileType } from the most recent successful compile
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function connectWebSerial() {
+  if (!("serial" in navigator)) {
+    log("Web Serial isn't supported in this browser. Use Chrome or Edge on desktop.");
+    return;
+  }
+  try {
+    const port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
+    webSerialPort = port;
+    const btn = document.getElementById("webSerialBtn");
+    if (btn) { btn.textContent = "🔌 Web Serial: Connected"; btn.classList.add("ws-connected"); }
+    log("✅ Board connected via Web Serial — you can flash directly from the browser now.");
+  } catch (e) {
+    log("Web Serial connection cancelled or failed: " + e.message);
+  }
+}
+navigator.serial && navigator.serial.addEventListener && navigator.serial.addEventListener("disconnect", (e) => {
+  if (webSerialPort && e.target === webSerialPort) {
+    webSerialPort = null;
+    const btn = document.getElementById("webSerialBtn");
+    if (btn) { btn.textContent = "🔌 Connect via Web Serial"; btn.classList.remove("ws-connected"); }
+    log("⚠️ Board disconnected (Web Serial).");
+  }
+});
+
+// Parses an Intel HEX (.hex) text file into a flat byte array representing flash memory.
+function parseIntelHex(hexText) {
+  const lines = hexText.split(/\r?\n/).filter(l => l.trim().startsWith(":"));
+  let extAddr = 0;
+  let maxAddr = 0;
+  const records = [];
+  for (const line of lines) {
+    const bytes = [];
+    for (let i = 1; i < line.length - 1; i += 2) bytes.push(parseInt(line.substr(i, 2), 16));
+    const byteCount = bytes[0];
+    const addr = (bytes[1] << 8) | bytes[2];
+    const type = bytes[3];
+    const data = bytes.slice(4, 4 + byteCount);
+    if (type === 0x00) {
+      const fullAddr = extAddr + addr;
+      records.push({ addr: fullAddr, data });
+      maxAddr = Math.max(maxAddr, fullAddr + data.length);
+    } else if (type === 0x04) {
+      extAddr = ((data[0] << 8) | data[1]) << 16;
+    } else if (type === 0x02) {
+      extAddr = ((data[0] << 8) | data[1]) << 4;
+    } else if (type === 0x01) {
+      break;
+    }
+  }
+  const flash = new Uint8Array(maxAddr).fill(0xFF);
+  for (const r of records) flash.set(r.data, r.addr);
+  return flash;
+}
+
+// STK500v1 (Optiboot / "arduino" programmer) uploader over Web Serial — used by
+// stock Arduino Uno bootloaders. Resets the board via DTR, syncs, then writes
+// flash in 128-byte pages.
+async function stk500Flash(port, flashBytes) {
+  const writer = port.writable.getWriter();
+  const reader = port.readable.getReader();
+  async function writeBytes(bytes) { await writer.write(new Uint8Array(bytes)); }
+  async function readBytes(n, timeoutMs) {
+    timeoutMs = timeoutMs || 1000;
+    let received = [];
+    const start = Date.now();
+    while (received.length < n) {
+      if (Date.now() - start > timeoutMs) throw new Error("Timeout waiting for bootloader response");
+      const { value } = await Promise.race([reader.read(), sleep(50).then(() => ({ value: undefined }))]);
+      if (value) received = received.concat(Array.from(value));
+    }
+    return received.slice(0, n);
+  }
+  try {
+    await port.setSignals({ dataTerminalReady: false, requestToSend: false });
+    await sleep(250);
+    await port.setSignals({ dataTerminalReady: true, requestToSend: true });
+    await sleep(600);
+
+    let synced = false;
+    for (let i = 0; i < 12 && !synced; i++) {
+      await writeBytes([0x30, 0x20]); // STK_GET_SYNC, CRC_EOP
+      try {
+        const resp = await readBytes(2, 400);
+        if (resp[0] === 0x14 && resp[1] === 0x10) synced = true;
+      } catch (e) { /* retry */ }
+    }
+    if (!synced) throw new Error("Could not sync with the bootloader. Try pressing reset on the board, or reconnect.");
+    log("Synced with bootloader.");
+
+    const PAGE_SIZE = 128;
+    const totalPages = Math.ceil(flashBytes.length / PAGE_SIZE);
+    for (let page = 0; page < totalPages; page++) {
+      const byteAddr = page * PAGE_SIZE;
+      const wordAddr = byteAddr >> 1;
+      await writeBytes([0x55, wordAddr & 0xFF, (wordAddr >> 8) & 0xFF, 0x20]); // STK_LOAD_ADDRESS
+      let resp = await readBytes(2);
+      if (!(resp[0] === 0x14 && resp[1] === 0x10)) throw new Error("Load-address failed at page " + page);
+
+      const pageData = [];
+      for (let i = 0; i < PAGE_SIZE; i++) {
+        const idx = byteAddr + i;
+        pageData.push(idx < flashBytes.length ? flashBytes[idx] : 0xFF);
+      }
+      await writeBytes([0x64, (PAGE_SIZE >> 8) & 0xFF, PAGE_SIZE & 0xFF, 0x46, ...pageData, 0x20]); // STK_PROG_PAGE
+      resp = await readBytes(2, 2000);
+      if (!(resp[0] === 0x14 && resp[1] === 0x10)) throw new Error("Programming failed at page " + page);
+
+      log("Flashing... " + Math.round(((page + 1) / totalPages) * 100) + "%");
+    }
+    await writeBytes([0x51, 0x20]); // STK_LEAVE_PROGMODE
+    try { await readBytes(2, 500); } catch (e) {}
+  } finally {
+    writer.releaseLock();
+    reader.releaseLock();
+  }
+}
+
+async function flashViaWebSerial(board) {
+  if (!webSerialPort) { log("Connect a board via Web Serial first."); return; }
+  if (!lastFirmware || !lastFirmware.files || !lastFirmware.files.length) { log("Compile the sketch first."); return; }
+  if (lastFirmware.fileType !== "hex") {
+    log("⚠️ ESP32/ESP8266 flashing over Web Serial isn't supported yet — please flash locally via arduino-cli for now.");
+    return;
+  }
+  const hexFile = lastFirmware.files.find(f => f.endsWith(".hex"));
+  if (!hexFile) { log("No .hex firmware file found from the last compile."); return; }
+
+  setStep(3, "active", "Flashing via Web Serial...");
+  log("Fetching compiled firmware: " + hexFile);
+  try {
+    const res = await fetch("/download-firmware/" + encodeURIComponent(hexFile));
+    if (!res.ok) throw new Error("Could not download firmware (status " + res.status + ")");
+    const hexText = await res.text();
+    const flashBytes = parseIntelHex(hexText);
+    log("Parsed firmware: " + flashBytes.length + " bytes.");
+
+    await stk500Flash(webSerialPort, flashBytes);
+
+    setStep(3, "done", "Flashed via Web Serial");
+    setStep(4, "done", "Code flashed successfully!");
+    log("✅ Flash complete via Web Serial.");
+    playCompletionSound();
+    showDesktopNotification("Code2MCU", "Flashed successfully via Web Serial.");
+  } catch (e) {
+    setStep(3, "fail", "Web Serial flash failed");
+    log("Web Serial flash error: " + e.message);
   }
 }
 
@@ -1437,8 +1281,32 @@ function openAuthModal(pane) {
   document.getElementById("authOverlay").classList.add("open");
   document.getElementById("loginError").textContent = "";
   document.getElementById("signupError").textContent = "";
+  const cpError = document.getElementById("cpError");
+  if (cpError) cpError.textContent = "";
   document.getElementById("loginPane").style.display = pane === "login" ? "block" : "none";
   document.getElementById("signupPane").style.display = pane === "signup" ? "block" : "none";
+  const cpPane = document.getElementById("changePasswordPane");
+  if (cpPane) cpPane.style.display = pane === "changePassword" ? "block" : "none";
+}
+function openChangePassword() {
+  document.getElementById("cpOldPassword").value = "";
+  document.getElementById("cpNewPassword").value = "";
+  openAuthModal("changePassword");
+}
+function doChangePassword() {
+  const errEl = document.getElementById("cpError");
+  if (!currentUser) { errEl.textContent = "You need to be logged in."; return; }
+  const oldPass = document.getElementById("cpOldPassword").value;
+  const newPass = document.getElementById("cpNewPassword").value;
+  if (!oldPass || !newPass) { errEl.textContent = "Please fill in both fields."; return; }
+  const db = loadUsersDb();
+  const user = db[currentUser.email];
+  if (!user || user.password !== oldPass) { errEl.textContent = "Current password is incorrect."; return; }
+  user.password = newPass;
+  saveUsersDb(db);
+  errEl.textContent = "";
+  closeAuthModal();
+  log("Password updated.");
 }
 function closeAuthModal() {
   document.getElementById("authOverlay").classList.remove("open");
@@ -1494,8 +1362,8 @@ function logout() {
 function renderAuthUI() {
   const loginBtn = document.getElementById("loginBtn");
   const userChip = document.getElementById("userChip");
-  const accOut = document.getElementById("accountLoggedOut");
   const accIn = document.getElementById("accountLoggedIn");
+  const accOut = document.getElementById("accountLoggedOut");
   if (currentUser) {
     loginBtn.style.display = "none";
     userChip.style.display = "flex";
@@ -1503,67 +1371,22 @@ function renderAuthUI() {
     document.getElementById("userChipName").textContent = currentUser.name;
     document.getElementById("ddName").textContent = currentUser.name;
     document.getElementById("ddEmail").textContent = currentUser.email;
-    if (accOut) accOut.style.display = "none";
-    if (accIn) {
+    if (accIn && accOut) {
       accIn.style.display = "block";
-      document.getElementById("accAvatar").textContent = currentUser.name.charAt(0).toUpperCase();
-      document.getElementById("accName").textContent = currentUser.name;
-      document.getElementById("accEmail").textContent = currentUser.email;
+      accOut.style.display = "none";
+      document.getElementById("settingsAvatar").textContent = currentUser.name.charAt(0).toUpperCase();
+      document.getElementById("settingsName").textContent = currentUser.name;
+      document.getElementById("settingsEmail").textContent = currentUser.email;
     }
   } else {
     loginBtn.style.display = "inline-block";
     userChip.style.display = "none";
-    if (accOut) accOut.style.display = "block";
-    if (accIn) accIn.style.display = "none";
+    if (accIn && accOut) {
+      accIn.style.display = "none";
+      accOut.style.display = "block";
+    }
   }
 }
-
-function editAccountName() {
-  if (!currentUser) return;
-  const newName = prompt("Edit display name", currentUser.name);
-  if (!newName || !newName.trim()) return;
-  const db = loadUsersDb();
-  if (db[currentUser.email]) db[currentUser.email].name = newName.trim();
-  saveUsersDb(db);
-  currentUser.name = newName.trim();
-  try { localStorage.setItem("code2mcu-session", JSON.stringify(currentUser)); } catch (e) {}
-  renderAuthUI();
-  showToast("Display name updated.");
-}
-
-// ---- Profile modal ----
-function openProfileModal() {
-  closeUserDropdown();
-  if (!currentUser) {
-    openAuthModal("login");
-    return;
-  }
-  document.getElementById("profileAvatarLg").textContent = currentUser.name.charAt(0).toUpperCase();
-  document.getElementById("profileNameLg").textContent = currentUser.name;
-  document.getElementById("profileEmailLg").textContent = currentUser.email;
-  document.getElementById("profileRowName").textContent = currentUser.name;
-  document.getElementById("profileRowEmail").textContent = currentUser.email;
-  document.getElementById("profileRowBoard").textContent = boardLabel(document.getElementById("boardSelect").value);
-  const theme = document.documentElement.getAttribute("data-theme") === "dark" ? "Dark" : "Light";
-  document.getElementById("profileRowTheme").textContent = theme;
-  document.getElementById("profileStatGen").textContent = history.length;
-  const boardCounts = {};
-  history.forEach(h => { boardCounts[h.board] = (boardCounts[h.board] || 0) + 1; });
-  let favBoard = "—";
-  let max = 0;
-  Object.keys(boardCounts).forEach(b => { if (boardCounts[b] > max) { max = boardCounts[b]; favBoard = boardLabel(b); } });
-  document.getElementById("profileStatBoard").textContent = favBoard;
-  let flashCount = 0;
-  try { flashCount = Number(localStorage.getItem("code2mcu-flash-count") || "0"); } catch (e) {}
-  document.getElementById("profileStatFlash").textContent = flashCount;
-  document.getElementById("profileOverlay").classList.add("open");
-}
-function closeProfileModal() {
-  document.getElementById("profileOverlay").classList.remove("open");
-}
-document.getElementById("profileOverlay").addEventListener("click", function (e) {
-  if (e.target === this) closeProfileModal();
-});
 
 function toggleUserDropdown(e) {
   e.stopPropagation();
@@ -1618,7 +1441,7 @@ function loadFromHistory(index) {
   currentCode = item.code;
   renderCode(currentCode);
   resetPipeline();
-  setStep(1, "done", (prefs.language === "hi" ? "हिस्ट्री से लोड किया गया" : "Loaded from history"));
+  setStep(1, "done", "Loaded from history");
   switchView("home", document.getElementById("navHome"));
   log("Reloaded from history: " + item.command);
 }
@@ -1628,12 +1451,10 @@ function boardLabel(b) {
 function renderHistory() {
   const list = document.getElementById("historyList");
   if (!list) return;
-  const dict = I18N[prefs.language] || I18N.en;
   if (!history.length) {
-    list.innerHTML = `<div class="history-empty">${dict.historyEmpty}</div>`;
+    list.innerHTML = '<div class="history-empty">No generations yet — anything you generate on the Home screen will show up here.</div>';
     return;
   }
-  const reloadLabel = prefs.language === "hi" ? "↺ फिर लोड करें" : "↺ Reload";
   list.innerHTML = history.map((item, i) => `
     <div class="history-item">
       <div>
@@ -1641,179 +1462,152 @@ function renderHistory() {
         <div class="history-meta">${escapeHtml(boardLabel(item.board))} · ${escapeHtml(item.time)}</div>
       </div>
       <div class="history-actions">
-        <button class="btn-white" onclick="loadFromHistory(${i})">${reloadLabel}</button>
+        <button class="btn-white" onclick="loadFromHistory(${i})">↺ Reload</button>
       </div>
     </div>
   `).join("");
 }
 
-// ---- Preferences (settings) ----
-let prefs = {
-  codeStyle: "verbose",
-  addComments: true,
-  safetyChecks: true,
-  creativity: 30,
-  soundNotif: true,
-  desktopNotif: false,
-  fontSize: 13,
-  defaultBaud: "9600",
-  language: "en"
-};
+// ---- Editor preferences (font size, word wrap) ----
+function loadEditorPrefs() {
+  let prefs = { fontSize: "13", wordWrap: false };
+  try { prefs = Object.assign(prefs, JSON.parse(localStorage.getItem("code2mcu-editor-prefs") || "{}")); } catch (e) {}
+  document.getElementById("fontSizeSelect").value = prefs.fontSize;
+  document.getElementById("wordWrapToggle").checked = prefs.wordWrap;
+  applyEditorPrefsToDom(prefs);
+}
+function applyEditorPrefsToDom(prefs) {
+  const codeText = document.getElementById("codeText");
+  const codeBody = document.querySelector(".code-body");
+  if (codeText) codeText.style.fontSize = prefs.fontSize + "px";
+  if (codeText) codeText.style.whiteSpace = prefs.wordWrap ? "pre-wrap" : "pre";
+  if (codeBody) codeBody.style.fontSize = prefs.fontSize + "px";
+}
+function applyEditorPrefs() {
+  const prefs = {
+    fontSize: document.getElementById("fontSizeSelect").value,
+    wordWrap: document.getElementById("wordWrapToggle").checked
+  };
+  try { localStorage.setItem("code2mcu-editor-prefs", JSON.stringify(prefs)); } catch (e) {}
+  applyEditorPrefsToDom(prefs);
+}
 
-function loadPrefs() {
-  try {
-    const saved = JSON.parse(localStorage.getItem("code2mcu-prefs") || "null");
-    if (saved) prefs = Object.assign(prefs, saved);
-  } catch (e) {}
+// ---- Notification preferences ----
+function loadNotifPrefs() {
+  let prefs = { sound: false, desktop: false };
+  try { prefs = Object.assign(prefs, JSON.parse(localStorage.getItem("code2mcu-notif-prefs") || "{}")); } catch (e) {}
+  document.getElementById("soundToggle").checked = prefs.sound;
+  document.getElementById("desktopNotifToggle").checked = prefs.desktop && Notification && Notification.permission === "granted";
 }
-function savePrefs() {
-  try { localStorage.setItem("code2mcu-prefs", JSON.stringify(prefs)); } catch (e) {}
+function saveNotifPrefs() {
+  const prefs = getNotifPrefs();
+  prefs.sound = document.getElementById("soundToggle").checked;
+  try { localStorage.setItem("code2mcu-notif-prefs", JSON.stringify(prefs)); } catch (e) {}
 }
-function applyPrefsToUI() {
-  document.getElementById("codeStyleSelect").value = prefs.codeStyle;
-  document.getElementById("addCommentsToggle").checked = prefs.addComments;
-  document.getElementById("safetyChecksToggle").checked = prefs.safetyChecks;
-  document.getElementById("creativityRange").value = prefs.creativity;
-  document.getElementById("creativityVal").textContent = prefs.creativity + "%";
-  document.getElementById("soundNotifToggle").checked = prefs.soundNotif;
-  document.getElementById("desktopNotifToggle").checked = prefs.desktopNotif && (typeof Notification !== "undefined" && Notification.permission === "granted");
-  document.getElementById("fontSizeRange").value = prefs.fontSize;
-  document.getElementById("fontSizeVal").textContent = prefs.fontSize + "px";
-  document.getElementById("defaultBaudSelect").value = prefs.defaultBaud;
-  document.getElementById("baudSelect").value = prefs.defaultBaud;
-  document.getElementById("languageSelect").value = prefs.language;
-  document.documentElement.style.setProperty("--code-font-size", prefs.fontSize + "px");
-  applyLanguage(prefs.language);
+function getNotifPrefs() {
+  try { return JSON.parse(localStorage.getItem("code2mcu-notif-prefs") || "{}"); } catch (e) { return {}; }
 }
-function onPrefChange() {
-  prefs.codeStyle = document.getElementById("codeStyleSelect").value;
-  prefs.addComments = document.getElementById("addCommentsToggle").checked;
-  prefs.safetyChecks = document.getElementById("safetyChecksToggle").checked;
-  prefs.soundNotif = document.getElementById("soundNotifToggle").checked;
-  prefs.defaultBaud = document.getElementById("defaultBaudSelect").value;
-  document.getElementById("baudSelect").value = prefs.defaultBaud;
-  savePrefs();
-  showToast(prefs.language === "hi" ? "सेटिंग्स सेव हो गईं।" : "Settings saved.");
-}
-function onCreativityInput() {
-  const v = document.getElementById("creativityRange").value;
-  prefs.creativity = Number(v);
-  document.getElementById("creativityVal").textContent = v + "%";
-  savePrefs();
-}
-function onFontSizeInput() {
-  const v = document.getElementById("fontSizeRange").value;
-  prefs.fontSize = Number(v);
-  document.getElementById("fontSizeVal").textContent = v + "px";
-  document.documentElement.style.setProperty("--code-font-size", v + "px");
-  savePrefs();
-}
-function onLanguageChange() {
-  const v = document.getElementById("languageSelect").value;
-  prefs.language = v;
-  savePrefs();
-  applyLanguage(v);
-  showToast(v === "hi" ? "भाषा हिंदी में बदल दी गई।" : "Language set to English.");
-}
-function onDesktopNotifToggle() {
-  const el = document.getElementById("desktopNotifToggle");
-  if (!el.checked) { prefs.desktopNotif = false; savePrefs(); return; }
-  if (typeof Notification === "undefined") {
-    showToast("Desktop notifications aren't supported in this browser.");
-    el.checked = false;
-    return;
+function toggleDesktopNotif() {
+  const box = document.getElementById("desktopNotifToggle");
+  if (!("Notification" in window)) { box.checked = false; log("Desktop notifications aren't supported in this browser."); return; }
+  if (box.checked) {
+    Notification.requestPermission().then(perm => {
+      box.checked = perm === "granted";
+      const prefs = getNotifPrefs();
+      prefs.desktop = box.checked;
+      try { localStorage.setItem("code2mcu-notif-prefs", JSON.stringify(prefs)); } catch (e) {}
+      if (perm !== "granted") log("Desktop notification permission was denied.");
+    });
+  } else {
+    const prefs = getNotifPrefs();
+    prefs.desktop = false;
+    try { localStorage.setItem("code2mcu-notif-prefs", JSON.stringify(prefs)); } catch (e) {}
   }
-  Notification.requestPermission().then(function (perm) {
-    if (perm === "granted") {
-      prefs.desktopNotif = true;
-      savePrefs();
-      showToast("Desktop notifications enabled.");
-    } else {
-      prefs.desktopNotif = false;
-      el.checked = false;
-      savePrefs();
-      showToast("Notification permission denied.");
-    }
-  });
 }
-function playBeep(success) {
+function playCompletionSound() {
+  const prefs = getNotifPrefs();
+  if (!prefs.sound) return;
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = "sine";
-    osc.frequency.value = success ? 880 : 220;
-    gain.gain.value = 0.06;
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
     osc.connect(gain).connect(ctx.destination);
     osc.start();
-    osc.stop(ctx.currentTime + 0.18);
+    osc.stop(ctx.currentTime + 0.3);
   } catch (e) {}
 }
-function notifyResult(success, title, body) {
-  if (prefs.soundNotif) playBeep(success);
-  if (prefs.desktopNotif && typeof Notification !== "undefined" && Notification.permission === "granted") {
-    try { new Notification(title, { body: body || "" }); } catch (e) {}
-  }
-  if (success && title === "Flashed successfully") {
-    try {
-      const c = Number(localStorage.getItem("code2mcu-flash-count") || "0") + 1;
-      localStorage.setItem("code2mcu-flash-count", String(c));
-    } catch (e) {}
-  }
+function showDesktopNotification(title, body) {
+  const prefs = getNotifPrefs();
+  if (!prefs.desktop || !("Notification" in window) || Notification.permission !== "granted") return;
+  try { new Notification(title, { body }); } catch (e) {}
 }
-function showToast(msg) {
-  const t = document.getElementById("settingsToast");
-  t.textContent = msg;
-  t.classList.add("show");
-  clearTimeout(showToast._timer);
-  showToast._timer = setTimeout(() => t.classList.remove("show"), 2200);
-}
-function exportHistory() {
-  const blob = new Blob([JSON.stringify(history, null, 2)], { type: "application/json" });
+
+// ---- Data & Privacy ----
+function exportData() {
+  const data = {
+    exportedAt: new Date().toISOString(),
+    history: history,
+    settings: {
+      theme: (function () { try { return localStorage.getItem("code2mcu-theme"); } catch (e) { return null; } })(),
+      defaultBoard: (function () { try { return localStorage.getItem("code2mcu-default-board"); } catch (e) { return null; } })(),
+      defaultBaud: (function () { try { return localStorage.getItem("code2mcu-default-baud"); } catch (e) { return null; } })(),
+      editorPrefs: (function () { try { return JSON.parse(localStorage.getItem("code2mcu-editor-prefs") || "{}"); } catch (e) { return {}; } })(),
+      notifPrefs: getNotifPrefs()
+    },
+    account: currentUser ? { name: currentUser.name, email: currentUser.email } : null
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "code2mcu-history.json";
+  a.download = "code2mcu-data-export.json";
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-  showToast("History exported.");
+  log("Exported your data as code2mcu-data-export.json.");
 }
-function resetAllData() {
-  if (!confirm("This will clear your history, preferences, theme and session on this browser. Continue?")) return;
-  try {
-    localStorage.removeItem("code2mcu-history");
-    localStorage.removeItem("code2mcu-prefs");
-    localStorage.removeItem("code2mcu-theme");
-    localStorage.removeItem("code2mcu-session");
-    localStorage.removeItem("code2mcu-users");
-    localStorage.removeItem("code2mcu-flash-count");
-  } catch (e) {}
-  location.reload();
+function resetAppData() {
+  if (!confirm("This clears your generation history, saved preferences, and logs you out on this device. Your account itself is kept. Continue?")) return;
+  ["code2mcu-history", "code2mcu-editor-prefs", "code2mcu-notif-prefs", "code2mcu-default-board", "code2mcu-default-baud", "code2mcu-session"].forEach(k => {
+    try { localStorage.removeItem(k); } catch (e) {}
+  });
+  history = [];
+  currentUser = null;
+  renderAuthUI();
+  renderHistory();
+  loadEditorPrefs();
+  loadNotifPrefs();
+  log("App data has been reset on this device.");
 }
 function checkForUpdates() {
-  showToast("You're on the latest version (1.0.0).");
+  log("You're on the latest version (v1.0.0).");
 }
-
-// ---- Keyboard shortcuts ----
-document.addEventListener("keydown", function (e) {
-  if (e.key === "Escape") { closeAuthModal(); closeUserDropdown(); closeProfileModal(); return; }
-  if (e.ctrlKey && e.key === "Enter") { e.preventDefault(); generateCode(); return; }
-  if (e.ctrlKey && e.shiftKey && (e.key === "C" || e.key === "c")) { e.preventDefault(); copyCode(); return; }
-  if (e.key === "/" && document.activeElement.tagName !== "INPUT") {
-    e.preventDefault();
-    document.getElementById("command").focus();
-  }
-});
 
 initTheme();
 setupMic();
 resetPipeline();
 initAuth();
 loadHistory();
-loadPrefs();
-applyPrefsToUI();
+loadEditorPrefs();
+loadNotifPrefs();
+(function initBoardAndBaudDefaults() {
+  let savedBoard = null, savedBaud = null;
+  try { savedBoard = localStorage.getItem("code2mcu-default-board"); } catch (e) {}
+  try { savedBaud = localStorage.getItem("code2mcu-default-baud"); } catch (e) {}
+  if (savedBoard) {
+    document.getElementById("boardSelect").value = savedBoard;
+    document.getElementById("defaultBoardSelect").value = savedBoard;
+  }
+  if (savedBaud) {
+    document.getElementById("defaultBaudSelect").value = savedBaud;
+    document.getElementById("baudSelect").value = savedBaud;
+  }
+})();
 loadPorts(true);
 startPortsPolling();
 setupWebSerialWatcher();
