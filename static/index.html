@@ -889,16 +889,22 @@ function renderPortsList() {
 
 function updateStatus() {
   const port = boardPort || "";
+  // NAYA FIX: pehle sirf local COM port (boardPort) dekhte the — Render (cloud)
+  // par boardPort kabhi milega hi nahi kyunki server ke paas physical port
+  // hota hi nahi, isliye Flash button hamesha disabled reh jaata tha, chahe
+  // Web Serial se board successfully connect kyu na ho gaya ho.
+  // Ab webSerialPort ko bhi "board connected" maana jaata hai.
+  const hasBoard = !!(port || webSerialPort);
   const pill = document.getElementById("connStatus");
   const serialPill = document.getElementById("serialStatusPill");
   const bottomStatus = document.getElementById("bottomStatus");
   const bottomReady = document.getElementById("bottomReady");
   const statPort = document.getElementById("statPort");
-  if (port) {
+  if (hasBoard) {
     pill.className = "status-pill";
     pill.innerHTML = `<span class="dot"></span> Connected`;
     if (serialPill) { serialPill.className = "status-pill"; serialPill.innerHTML = `<span class="dot"></span> Connected`; }
-    bottomStatus.textContent = "● Board on " + port;
+    bottomStatus.textContent = port ? ("● Board on " + port) : "● Board connected (Web Serial)";
     bottomReady.textContent = "Ready";
   } else {
     pill.className = "status-pill off";
@@ -907,8 +913,8 @@ function updateStatus() {
     bottomStatus.textContent = "○ Not connected";
     bottomReady.textContent = "";
   }
-  if (statPort) statPort.textContent = port || "—";
-  document.getElementById("flashBtn").disabled = !port;
+  if (statPort) statPort.textContent = port || (webSerialPort ? "Web Serial" : "—");
+  document.getElementById("flashBtn").disabled = !hasBoard;
 }
 
 // Poll the backend every 2s so unplugging/replugging the board is picked up
@@ -1078,6 +1084,7 @@ async function connectWebSerial() {
     webSerialPort = port;
     const btn = document.getElementById("webSerialBtn");
     if (btn) { btn.textContent = "🔌 Web Serial: Connected"; btn.classList.add("ws-connected"); }
+    updateStatus(); // NAYA: flashBtn turant enable ho, agli 2s poll ka wait na karna pade
     log("✅ Board connected via Web Serial — you can flash directly from the browser now.");
   } catch (e) {
     log("Web Serial connection cancelled or failed: " + e.message);
@@ -1088,6 +1095,7 @@ navigator.serial && navigator.serial.addEventListener && navigator.serial.addEve
     webSerialPort = null;
     const btn = document.getElementById("webSerialBtn");
     if (btn) { btn.textContent = "🔌 Connect via Web Serial"; btn.classList.remove("ws-connected"); }
+    updateStatus(); // NAYA: agar local port bhi nahi hai to flashBtn wapas disable ho jaye
     log("⚠️ Board disconnected (Web Serial).");
   }
 });
