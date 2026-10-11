@@ -1,6 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -8,23 +8,24 @@ from groq import Groq
 from dotenv import load_dotenv
 import os
 import glob
+import time
 import shutil
+import tempfile
 import subprocess
-import json  # NAYA: circuit JSON parse karne ke liye
+import json
 
 load_dotenv()
 
 app = FastAPI()
 app.mount("/ui", StaticFiles(directory="static", html=True), name="ui")
 
-# --- CORS: taaki aapki website kisi bhi domain se is backend ko call kar sake ---
-# (Jab aap frontend ko bhi cloud/CDN par daalenge, iski zaroorat padegi)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],       # production me isko apni actual website ke domain tak limit kar dena
+    allow_origins=["*"],       # production me isko apni website ke domain tak limit kar sakte ho
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 class NoCacheMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
@@ -32,17 +33,12 @@ class NoCacheMiddleware(BaseHTTPMiddleware):
         response.headers["Cache-Control"] = "no-store"
         return response
 
+
 app.add_middleware(NoCacheMiddleware)
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-SKETCH_DIR = "generated_sketch"
-SKETCH_FILE = os.path.join(SKETCH_DIR, "generated_sketch.ino")
-
-# --- NAYA: har compile ka output ek fixed, jaana-pehchana folder me jaayega ---
-BUILD_DIR = "build_output"
-
-# NAYA: arduino-cli ka path. Pehle .env ka ARDUINO_CLI_PATH dekhta hai, fir PATH, fir plain naam.
+# arduino-cli ka path: .env ka ARDUINO_CLI_PATH, fir PATH, fir plain naam
 ARDUINO_CLI = os.getenv("ARDUINO_CLI_PATH") or shutil.which("arduino-cli") or "arduino-cli"
 
 BOARD_FQBN = {
@@ -51,90 +47,108 @@ BOARD_FQBN = {
     "esp8266": "esp8266:esp8266:generic",
 }
 
-# Kis board ka firmware kis file-type me hota hai, yeh batata hai
-BOARD_FILE_TYPE = {
-    "uno": "hex",
-    "esp32": "bin",
-    "esp8266": "bin",
-}
+# ---------------------------------------------------------------------------
+# Simple rate limit (per IP) — taaki koi aapki Groq API key ka quota na khatam kar de.
+# Memory me rehta hai, server restart par reset ho jaata hai. Zaroorat ho to numbers badlo.
+# ---------------------------------------------------------------------------
+RATE_LIMIT_MAX = 40          # itne requests
+RATE_LIMIT_WINDOW = 600      # itne seconds (10 minute) me
+_hits = {}
 
-hardware_config = {}
 
-class HardwareConfig(BaseModel):
-    components: dict
+def too_many_requests(request: Request) -> bool:
+    fwd = request.headers.get("x-forwarded-for", "")
+    ip = fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else "unknown")
+    now = time.time()
+    recent = [t for t in _hits.get(ip, []) if now - t < RATE_LIMIT_WINDOW]
+    if len(recent) >= RATE_LIMIT_MAX:
+        _hits[ip] = recent
+        return True
+    recent.append(now)
+    _hits[ip] = recent
+    return False
 
-@app.post("/set-hardware")
-def set_hardware(config: HardwareConfig):
-    global hardware_config
-    hardware_config = config.components
-    return {"status": "saved", "hardware": hardware_config}
 
 DANGEROUS_KEYWORDS = [
     "220v", "230v", "ac power", "mains", "short",
     "gnd to vcc", "vcc to gnd", "reverse polarity"
 ]
 
+
 def is_dangerous(text: str) -> bool:
     return any(k in text.lower() for k in DANGEROUS_KEYWORDS)
+
+
+def strip_code_fences(text: str) -> str:
+    """Agar AI ne ``` laga diya ho to hata do, warna compile fail hoga."""
+    text = (text or "").strip()
+    if "```" in text:
+        text = "\n".join(l for l in text.splitlines() if not l.strip().startswith("```"))
+    return text.strip()
+
+
+@app.get("/")
+def home():
+    return FileResponse("static/index.html")
 
 
 class CommandRequest(BaseModel):
     command: str
 
+
 @app.post("/generate")
-def generate_code(request: CommandRequest):
+def generate_code(request: CommandRequest, http: Request):
     """Sirf code generate karta hai. Compile/flash nahi karta."""
+    if too_many_requests(http):
+        return {"error": "Bahut zyada requests. Thodi der baad dobara try karo.", "code": None}
+    if len(request.command) > 1000:
+        return {"error": "Command bahut lamba hai.", "code": None}
     if is_dangerous(request.command):
         return {"error": "This command was blocked for safety reasons.", "code": None}
-
-    hardware_info = ""
-    if hardware_config:
-        hardware_info = "Hardware wiring:\n" + "\n".join(
-            f"- {name} is connected to pin {pin}" for name, pin in hardware_config.items()
-        )
 
     system_prompt = (
         "You are an Arduino code generator. Given a plain-language "
         "instruction, output ONLY valid Arduino C++ sketch code "
         "(setup() and loop() functions). Do not include explanations, "
-        "markdown formatting, or code fences — just raw code.\n\n"
-        f"{hardware_info}\n"
-        "Use these exact pin numbers when the instruction refers to "
-        "these components by name."
+        "markdown formatting, or code fences — just raw code."
     )
 
-    response = client.chat.completions.create(
-        model="openai/gpt-oss-120b",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": request.command}
-        ]
-    )
+    try:
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": request.command},
+            ],
+        )
+    except Exception as e:
+        return {"error": f"Code generate nahi ho paya: {e}", "code": None}
 
-    generated_code = response.choices[0].message.content
+    generated_code = strip_code_fences(response.choices[0].message.content)
 
     if is_dangerous(generated_code):
         return {"error": "Generated code was blocked for safety reasons.", "code": None}
-
-    os.makedirs(SKETCH_DIR, exist_ok=True)
-    with open(SKETCH_FILE, "w") as f:
-        f.write(generated_code)
 
     return {"error": None, "code": generated_code}
 
 
 # ---------------------------------------------------------------------------
-# NAYA: /circuit — generated code ko padhkar wiring / circuit JSON banata hai.
-# Frontend is JSON se diagram aur wiring table draw karta hai.
+# /circuit — generated code ko padhkar wiring / circuit JSON banata hai.
 # ---------------------------------------------------------------------------
 class CircuitRequest(BaseModel):
     code: str
     board: str = "uno"
     lang: str = "en"   # "en" ya "hi" — notes isi bhasha me aayenge
 
+
 @app.post("/circuit")
-def make_circuit(request: CircuitRequest):
+def make_circuit(request: CircuitRequest, http: Request):
     """Generated code padhkar professional diagram ke liye typed wiring JSON banata hai."""
+    if too_many_requests(http):
+        return {"error": "Bahut zyada requests. Thodi der baad dobara try karo.", "circuit": None}
+    if len(request.code) > 20000:
+        return {"error": "Code bahut bada hai.", "circuit": None}
+
     notes_lang = (
         "Write the 'notes' field in simple Hindi (Devanagari script)."
         if request.lang == "hi" else
@@ -179,7 +193,6 @@ def make_circuit(request: CircuitRequest):
             ],
         )
         raw = response.choices[0].message.content.strip()
-        # Agar AI ne galti se ``` laga diya ho to hata do, aur sirf { ... } wala hissa lo
         start, end = raw.find("{"), raw.rfind("}")
         data = json.loads(raw[start:end + 1])
         return {"error": None, "circuit": data}
@@ -187,211 +200,84 @@ def make_circuit(request: CircuitRequest):
         return {"error": f"Circuit banane me problem: {e}", "circuit": None}
 
 
+# ---------------------------------------------------------------------------
+# /compile — har request apne alag temp folder me compile hota hai (kai users ek saath
+# use kar sakte hain). Compiled .hex file seedha response me wapas jaati hai,
+# browser use Web Serial se board me flash karta hai.
+# ---------------------------------------------------------------------------
 class CompileRequest(BaseModel):
     board: str = "uno"
+    code: str
+
 
 @app.post("/compile")
 def compile_sketch(request: CompileRequest):
-    """
-    Abhi jo bhi sketch save hai (last /generate se), usko compile karta hai.
-    Ab yeh --output-dir use karta hai taaki compiled .hex/.bin file
-    ek fixed jagah (BUILD_DIR) me mile, jise baad me /download-firmware
-    endpoint se browser tak bheja ja sake.
-
-    DEBUG PATCH: ab yeh /debug jaisa hi shutil.which() se resolved full
-    path use karta hai (bare "arduino-cli" string par PATH-lookup bharosa
-    karne ke bajaye), aur error message me asli exception (str(e)) bhi
-    include karta hai — taaki agar "not found" wapas aaye to pata chale
-    ki ASLI wajah kya thi, sirf generic guess nahi.
-    """
-    if not os.path.exists(SKETCH_FILE):
-        return {"compile_success": False, "compile_output": "No sketch found. Generate code first."}
-
     board = request.board
-    fqbn = BOARD_FQBN.get(board, BOARD_FQBN["uno"])
+    if board != "uno":
+        return {"compile_success": False,
+                "compile_output": "Abhi online sirf Arduino Uno supported hai.",
+                "board": board}
+    if not request.code.strip():
+        return {"compile_success": False, "compile_output": "Pehle code generate karo.", "board": board}
+    if len(request.code) > 20000:
+        return {"compile_success": False, "compile_output": "Code bahut bada hai.", "board": board}
 
-    os.makedirs(BUILD_DIR, exist_ok=True)
-    # Purane build files hata do taaki purani file naye compile ke saath mix na ho
-    for f in glob.glob(os.path.join(BUILD_DIR, "*")):
+    fqbn = BOARD_FQBN["uno"]
+    with tempfile.TemporaryDirectory() as tmp:
+        sk = os.path.join(tmp, "sketch")          # folder aur .ino ka naam ek hi hona chahiye
+        os.makedirs(sk)
+        with open(os.path.join(sk, "sketch.ino"), "w", encoding="utf-8") as f:
+            f.write(request.code)
+        out = os.path.join(tmp, "out")
         try:
-            os.remove(f)
-        except OSError:
-            pass
+            result = subprocess.run(
+                [ARDUINO_CLI, "compile", "--fqbn", fqbn, "--output-dir", out, sk],
+                capture_output=True, text=True, timeout=120,
+            )
+        except FileNotFoundError as e:
+            return {"compile_success": False,
+                    "compile_output": f"arduino-cli server par nahi mila ({ARDUINO_CLI!r}): {e}",
+                    "board": board}
+        except subprocess.TimeoutExpired:
+            return {"compile_success": False, "compile_output": "Compile timeout ho gaya.", "board": board}
+        except Exception as e:
+            return {"compile_success": False,
+                    "compile_output": f"{type(e).__name__}: {e}", "board": board}
 
-    # Resolve full path abhi, isi request ke waqt — /debug jaisa hi.
-    # Agar bare "arduino-cli" PATH me na mile to fallback string use karo
-    # taaki error message me pata chale ki resolution khud hi fail hui thi.
-    cli_path = ARDUINO_CLI
-    cwd_now = os.getcwd()
+        if result.returncode != 0:
+            return {"compile_success": False, "compile_output": result.stderr, "board": board}
 
-    try:
-        result = subprocess.run(
-            [
-                cli_path, "compile",
-                "--fqbn", fqbn,
-                "--output-dir", BUILD_DIR,
-                "--export-binaries",
-                SKETCH_DIR,
-            ],
-            capture_output=True,
-            text=True,
-            timeout=180,  # free/starter tier par slow ho sakta hai — silently hang na ho
-        )
-    except FileNotFoundError as e:
-        return {
-            "compile_success": False,
-            "compile_output": (
-                f"arduino-cli not found at request time. "
-                f"Resolved path was: {cli_path!r}, cwd: {cwd_now!r}. "
-                f"Raw error: {e}"
-            ),
-            "firmware_ready": False,
-            "firmware_files": [],
-            "board": board,
-            "file_type": BOARD_FILE_TYPE.get(board, "bin"),
-        }
-    except subprocess.TimeoutExpired as e:
-        return {
-            "compile_success": False,
-            "compile_output": f"Compile timed out after {e.timeout}s. Server resources (RAM/CPU) may be too limited for this board's core.",
-            "firmware_ready": False,
-            "firmware_files": [],
-            "board": board,
-            "file_type": BOARD_FILE_TYPE.get(board, "bin"),
-        }
-    except Exception as e:
-        return {
-            "compile_success": False,
-            "compile_output": f"Unexpected server error while compiling: {type(e).__name__}: {e}",
-            "firmware_ready": False,
-            "firmware_files": [],
-            "board": board,
-            "file_type": BOARD_FILE_TYPE.get(board, "bin"),
-        }
-
-    success = result.returncode == 0
-
-    firmware_ready = False
-    firmware_files = []
-    if success:
-        firmware_files = [os.path.basename(f) for f in glob.glob(os.path.join(BUILD_DIR, "*"))]
-        firmware_ready = len(firmware_files) > 0
+        hexes = [h for h in glob.glob(os.path.join(out, "*.hex")) if "with_bootloader" not in h]
+        if not hexes:
+            return {"compile_success": False, "compile_output": "hex file nahi bani.", "board": board}
+        with open(hexes[0], "r") as f:
+            hex_text = f.read()
 
     return {
-        "compile_success": success,
-        "compile_output": result.stdout if success else result.stderr,
-        "firmware_ready": firmware_ready,
-        "firmware_files": firmware_files,   # frontend ko pata chalega kaunsi files download karni hain
+        "compile_success": True,
+        "compile_output": result.stdout,
+        "hex_text": hex_text,
         "board": board,
-        "file_type": BOARD_FILE_TYPE.get(board, "bin"),
+        "file_type": "hex",
     }
 
 
-@app.get("/download-firmware/{filename}")
-def download_firmware(filename: str):
-    """
-    Compile ke baad ban chuki firmware file (.hex ya .bin) ko seedha
-    browser me download/fetch karne ke liye.
-    """
-    # Security: sirf BUILD_DIR ke andar ki file hi serve karo, koi bhi random
-    # file-path traversal allow mat karo
-    safe_name = os.path.basename(filename)
-    file_path = os.path.join(BUILD_DIR, safe_name)
-    if not os.path.exists(file_path):
-        return {"error": "File not found. Compile first."}
-    return FileResponse(file_path, filename=safe_name, media_type="application/octet-stream")
-
-
-# ---------------------------------------------------------------------------
-# NEECHE WAALE DONO ENDPOINTS SIRF LOCAL USE KE LIYE HAIN
-# (jab aap apne hi PC par, apne hi board ke saath test kar rahe ho).
-# Cloud par deploy karne par yeh kaam nahi karenge kyunki wahan koi
-# physical COM port hota hi nahi — isliye frontend inhe sirf tab call
-# karega jab board Web Serial se connect na ho.
-# ---------------------------------------------------------------------------
-
-class FlashRequest(BaseModel):
-    port: str
-    board: str = "uno"
-
-@app.post("/flash")
-def flash_sketch(request: FlashRequest):
-    """(Local-only) Compiled sketch ko diye gaye port par upload karta hai."""
-    fqbn = BOARD_FQBN.get(request.board, BOARD_FQBN["uno"])
-
-    try:
-        result = subprocess.run(
-            [ARDUINO_CLI, "upload", "-p", request.port, "--fqbn", fqbn, SKETCH_DIR],
-            capture_output=True,
-            text=True
-        )
-    except FileNotFoundError:
-        return {"upload_success": False, "upload_output": "arduino-cli not found on this server."}
-    except Exception as e:
-        return {"upload_success": False, "upload_output": f"Unexpected server error while flashing: {e}"}
-
-    success = result.returncode == 0
-    return {
-        "upload_success": success,
-        "upload_output": result.stdout if success else result.stderr
-    }
-
-
+# Local-only purana endpoint. Cloud par koi COM port nahi hota, isliye khaali list.
 @app.get("/ports")
 def list_ports():
-    """(Local-only) Connected COM ports ki list deta hai."""
-    try:
-        result = subprocess.run(
-            [ARDUINO_CLI, "board", "list"],
-            capture_output=True,
-            text=True
-        )
-    except FileNotFoundError:
-        return {"ports": []}
-    except Exception:
-        return {"ports": []}
-
-    ports = []
-    for line in result.stdout.splitlines()[1:]:
-        if line.strip():
-            parts = line.split()
-            if parts and parts[0].startswith("COM"):
-                ports.append(parts[0])
-    return {"ports": ports}
+    return {"ports": []}
 
 
-# ---------------------------------------------------------------------------
-# DEBUG endpoint — yeh batata hai ki server par arduino-cli mila ya
-# nahi, uska version kya hai, aur konse board "cores" install hain.
-# ---------------------------------------------------------------------------
 @app.get("/debug")
 def debug_info():
-    info = {}
-
-    info["arduino_cli_path"] = ARDUINO_CLI
-    info["cwd"] = os.getcwd()
-
+    info = {"arduino_cli_path": ARDUINO_CLI, "cwd": os.getcwd()}
     try:
         v = subprocess.run([ARDUINO_CLI, "version"], capture_output=True, text=True, timeout=15)
-        info["version_stdout"] = v.stdout.strip()
-        info["version_stderr"] = v.stderr.strip()
-        info["version_returncode"] = v.returncode
-    except FileNotFoundError:
-        info["version_error"] = "arduino-cli executable not found (FileNotFoundError)."
-    except Exception as e:
-        info["version_error"] = str(e)
-
-    try:
+        info["version"] = v.stdout.strip() or v.stderr.strip()
         c = subprocess.run([ARDUINO_CLI, "core", "list"], capture_output=True, text=True, timeout=15)
-        info["installed_cores_stdout"] = c.stdout.strip()
-        info["installed_cores_stderr"] = c.stderr.strip()
+        info["installed_cores"] = c.stdout.strip() or c.stderr.strip()
     except FileNotFoundError:
-        info["core_list_error"] = "arduino-cli executable not found (FileNotFoundError)."
+        info["error"] = "arduino-cli executable not found."
     except Exception as e:
-        info["core_list_error"] = str(e)
-
-    info["sketch_file_exists"] = os.path.exists(SKETCH_FILE)
-    info["build_dir_exists"] = os.path.exists(BUILD_DIR)
-    info["path_env"] = os.environ.get("PATH", "")
-
+        info["error"] = str(e)
     return info
