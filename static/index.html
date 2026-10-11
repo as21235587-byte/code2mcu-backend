@@ -1525,41 +1525,71 @@ function parseIntelHex(hexText) {
 
 // STK500v1 (Optiboot) uploader over Web Serial — Arduino Uno ke liye.
 // Ek koshish: port naye sire se kholta hai, reset karta hai, sync karta hai, pages likhta hai.
+// FIX: Web Serial par FramingError / BufferOverrun jaisi "non-fatal" errors aane par purana reader
+// mar jata tha aur uske baad board ka koi jawab padha hi nahi jata tha (0/2 bytes). Ab reader dobara ban jata hai.
 async function stk500Attempt(port, flashBytes, baud) {
   try { await port.close(); } catch (e) { /* pehle se band ho to theek */ }
-  await port.open({ baudRate: baud, bufferSize: 4096 });
+  await port.open({ baudRate: baud, bufferSize: 8192 });
 
   const writer = port.writable.getWriter();
-  const reader = port.readable.getReader();
-
   let rxBuf = [];
+  let rxTotal = 0;
   let stopReading = false;
+  let currentReader = null;
+  const readerErrors = [];
+
   const readLoop = (async () => {
-    try {
-      while (!stopReading) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        if (value) for (const b of value) rxBuf.push(b);
+    let problems = 0;
+    while (!stopReading && port.readable && problems < 50) {
+      const reader = port.readable.getReader();
+      currentReader = reader;
+      try {
+        while (!stopReading) {
+          const { value, done } = await reader.read();
+          if (done) { if (!stopReading) problems++; break; }
+          if (value && value.length) {
+            for (const b of value) rxBuf.push(b);
+            rxTotal += value.length;
+          }
+        }
+      } catch (e) {
+        if (!stopReading) {
+          problems++;
+          const name = (e && e.name) ? e.name : String(e);
+          readerErrors.push(name);
+          if (readerErrors.length <= 3) log("ℹ️ Serial read error (" + name + ") — reader dobara chalu kiya.");
+        }
+      } finally {
+        try { reader.releaseLock(); } catch (e) {}
+        if (currentReader === reader) currentReader = null;
       }
-    } catch (e) { /* reader release hone par yahan aata hai */ }
+      if (!stopReading) await sleep(5);
+    }
   })();
 
-  const hex = n => "0x" + n.toString(16).padStart(2, "0");
+  const hex = n => n.toString(16).padStart(2, "0").toUpperCase();
+  const dump = () => rxBuf.length ? rxBuf.slice(0, 12).map(hex).join(" ") : "kuch nahi";
   async function writeBytes(bytes) { await writer.write(new Uint8Array(bytes)); }
-  async function readBytes(n, timeoutMs, what) {
+
+  // Jawab ka format: 0x14 [dataLen bytes] 0x10. Aage ka kachra apne-aap hata deta hai.
+  async function readReply(dataLen, timeoutMs, what) {
     const start = Date.now();
-    while (rxBuf.length < n) {
+    for (;;) {
+      const i = rxBuf.indexOf(0x14);
+      if (i !== -1 && rxBuf.length >= i + dataLen + 2) {
+        const frame = rxBuf.splice(0, i + dataLen + 2).slice(i);
+        const last = frame[frame.length - 1];
+        if (last === 0x10) return frame.slice(1, 1 + dataLen);
+        if (last === 0x11) throw new Error(what + ": bootloader ne FAILED (0x11) bheja");
+        continue; // kachra tha, aage dhundo
+      }
       if (Date.now() - start > timeoutMs) {
-        throw new Error("Board ne jawab nahi diya (" + what + "): " + rxBuf.length + "/" + n + " bytes mile, " + baud + " baud par");
+        throw new Error("Board ne jawab nahi diya (" + what + "): mila = [" + dump() + "], kul " + rxTotal +
+          " bytes aaye, " + baud + " baud par" +
+          (readerErrors.length ? ", read errors: " + readerErrors.join(",") : "") +
+          (port.readable ? "" : ", port reader band ho gaya"));
       }
       await sleep(5);
-    }
-    return rxBuf.splice(0, n);
-  }
-  async function expectOk(what, timeoutMs) {
-    const r = await readBytes(2, timeoutMs || 3000, what);
-    if (r[0] !== 0x14 || r[1] !== 0x10) {
-      throw new Error(what + ": galat jawab (" + hex(r[0]) + " " + hex(r[1]) + ")");
     }
   }
 
@@ -1570,31 +1600,47 @@ async function stk500Attempt(port, flashBytes, baud) {
       await port.setSignals({ dataTerminalReady: false, requestToSend: false });
       await sleep(250);
       await port.setSignals({ dataTerminalReady: true, requestToSend: true });
-      await sleep(100);
+      await sleep(120);
       for (let i = 0; i < 10 && !synced; i++) {
         rxBuf.length = 0;
         await writeBytes([0x30, 0x20]);   // STK_GET_SYNC
-        try {
-          const r = await readBytes(2, 200, "sync");
-          if (r[0] === 0x14 && r[1] === 0x10) synced = true;
-        } catch (e) { /* dobara */ }
+        try { await readReply(0, 250, "sync"); synced = true; } catch (e) { /* dobara */ }
       }
     }
-    if (!synced) throw new Error("Bootloader se sync nahi hua (" + baud + " baud)");
+    if (!synced) throw new Error("Bootloader se sync nahi hua (" + baud + " baud), kul " + rxTotal + " bytes aaye");
     log("Synced with bootloader (" + baud + " baud).");
 
     // Sync ke waqt jo extra/der se aaye jawab bache hon, unhe saaf karo
-    await sleep(60);
+    await sleep(100);
     rxBuf.length = 0;
 
-    // 2) Pages likho
+    // 2) Chip ki signature padho (sirf jaanch: Uno ke liye 1E 95 0F aani chahiye)
+    try {
+      await writeBytes([0x75, 0x20]);
+      const sig = await readReply(3, 1000, "signature");
+      log("Chip signature: " + sig.map(hex).join(" ") + (sig.join(",") === "30,149,15" ? " (ATmega328P ✓)" : " (ATmega328P nahi lag raha)"));
+    } catch (e) {
+      log("⚠️ Signature nahi mili: " + e.message);
+      rxBuf.length = 0;
+    }
+
+    // 3) Programming mode
+    try {
+      await writeBytes([0x50, 0x20]);
+      await readReply(0, 1000, "enter progmode");
+    } catch (e) {
+      log("⚠️ Progmode jawab nahi: " + e.message);
+      rxBuf.length = 0;
+    }
+
+    // 4) Pages likho
     const PAGE_SIZE = 128;
     const totalPages = Math.ceil(flashBytes.length / PAGE_SIZE);
     for (let page = 0; page < totalPages; page++) {
       const byteAddr = page * PAGE_SIZE;
       const wordAddr = byteAddr >> 1;
       await writeBytes([0x55, wordAddr & 0xFF, (wordAddr >> 8) & 0xFF, 0x20]); // LOAD_ADDRESS
-      await expectOk("load address, page " + (page + 1) + "/" + totalPages, 3000);
+      await readReply(0, 3000, "load address, page " + (page + 1) + "/" + totalPages);
 
       const pageData = [];
       for (let i = 0; i < PAGE_SIZE; i++) {
@@ -1602,21 +1648,23 @@ async function stk500Attempt(port, flashBytes, baud) {
         pageData.push(idx < flashBytes.length ? flashBytes[idx] : 0xFF);
       }
       await writeBytes([0x64, (PAGE_SIZE >> 8) & 0xFF, PAGE_SIZE & 0xFF, 0x46, ...pageData, 0x20]); // PROG_PAGE
-      await expectOk("program page " + (page + 1) + "/" + totalPages, 4000);
+      await readReply(0, 4000, "program page " + (page + 1) + "/" + totalPages);
 
       if (page % 8 === 0 || page === totalPages - 1) {
         log("Flashing... " + Math.round(((page + 1) / totalPages) * 100) + "%");
       }
     }
 
-    // 3) Program mode se bahar
+    // 5) Program mode se bahar
     await writeBytes([0x51, 0x20]);
-    try { await readBytes(2, 500, "leave progmode"); } catch (e) {}
+    try { await readReply(0, 500, "leave progmode"); } catch (e) {}
   } finally {
     stopReading = true;
-    try { reader.releaseLock(); }
-    catch (e) { try { await reader.cancel(); } catch (_) {} try { reader.releaseLock(); } catch (_) {} }
-    await readLoop;
+    if (currentReader) {
+      try { currentReader.releaseLock(); }
+      catch (e) { try { await currentReader.cancel(); } catch (_) {} }
+    }
+    await Promise.race([readLoop, sleep(1000)]);
     try { writer.releaseLock(); } catch (e) {}
   }
 }
