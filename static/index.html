@@ -1524,10 +1524,11 @@ function parseIntelHex(hexText) {
 }
 
 // STK500v1 (Optiboot) uploader over Web Serial — Arduino Uno ke liye.
-// Ek koshish: port naye sire se kholta hai, reset karta hai, sync karta hai, pages likhta hai.
-// FIX: Web Serial par FramingError / BufferOverrun jaisi "non-fatal" errors aane par purana reader
-// mar jata tha aur uske baad board ka koi jawab padha hi nahi jata tha (0/2 bytes). Ab reader dobara ban jata hai.
-async function stk500Attempt(port, flashBytes, baud) {
+// mode:
+//   "avrdude" = Arduino IDE jaisa reset (DTR+RTS dabao 250ms, phir chhod do)
+//   "dtr"     = wahi, par sirf DTR line se
+//   "manual"  = code reset nahi karta; aap board ka RESET button dabate ho
+async function stk500Attempt(port, flashBytes, baud, mode) {
   try { await port.close(); } catch (e) { /* pehle se band ho to theek */ }
   await port.open({ baudRate: baud, bufferSize: 8192 });
 
@@ -1593,38 +1594,57 @@ async function stk500Attempt(port, flashBytes, baud) {
     }
   }
 
-  try {
-    // 1) Board ko reset karke bootloader me lao aur sync karo
-    let synced = false;
-    for (let attempt = 0; attempt < 3 && !synced; attempt++) {
-      await port.setSignals({ dataTerminalReady: false, requestToSend: false });
-      await sleep(250);
-      await port.setSignals({ dataTerminalReady: true, requestToSend: true });
-      await sleep(120);
-      for (let i = 0; i < 10 && !synced; i++) {
-        rxBuf.length = 0;
-        await writeBytes([0x30, 0x20]);   // STK_GET_SYNC
-        try { await readReply(0, 250, "sync"); synced = true; } catch (e) { /* dobara */ }
-      }
-    }
-    if (!synced) throw new Error("Bootloader se sync nahi hua (" + baud + " baud), kul " + rxTotal + " bytes aaye");
-    log("Synced with bootloader (" + baud + " baud).");
+  // Bootloader abhi bhi sun raha hai ya nahi — ek sync bhejkar dekhta hai
+  async function aliveCheck() {
+    rxBuf.length = 0;
+    await writeBytes([0x30, 0x20]);
+    try { await readReply(0, 600, "alive"); return true; } catch (e) { return false; }
+  }
 
-    // Sync ke waqt jo extra/der se aaye jawab bache hon, unhe saaf karo
-    await sleep(100);
+  const t0 = Date.now();
+  try {
+    // 1) Reset
+    if (mode === "avrdude" || mode === "dtr") {
+      const both = (mode === "avrdude");
+      await port.setSignals(both ? { dataTerminalReady: true, requestToSend: true } : { dataTerminalReady: true });
+      await sleep(250);
+      await port.setSignals(both ? { dataTerminalReady: false, requestToSend: false } : { dataTerminalReady: false });
+      await sleep(50);
+    } else {
+      log("👉 Ab board ka RESET button ek baar dabao (8 second tak sync try hota rahega).");
+    }
+
+    // 2) Sync
+    let synced = false, tries = 0;
+    const syncDeadline = Date.now() + (mode === "manual" ? 8000 : 3000);
+    while (!synced && Date.now() < syncDeadline) {
+      tries++;
+      rxBuf.length = 0;
+      await writeBytes([0x30, 0x20]);   // STK_GET_SYNC
+      try { await readReply(0, 150, "sync"); synced = true; } catch (e) { /* dobara */ }
+    }
+    if (!synced) throw new Error("Bootloader se sync nahi hua (mode=" + mode + "), kul " + rxTotal + " bytes aaye");
+    log("Synced with bootloader (" + baud + " baud, mode=" + mode + ", " + tries + " try, " + (Date.now() - t0) + " ms).");
+
+    await sleep(30);
     rxBuf.length = 0;
 
-    // 2) Chip ki signature padho (sirf jaanch: Uno ke liye 1E 95 0F aani chahiye)
+    // 3) Chip ki signature padho (jaanch: Uno ke liye 1E 95 0F)
     try {
       await writeBytes([0x75, 0x20]);
       const sig = await readReply(3, 1000, "signature");
       log("Chip signature: " + sig.map(hex).join(" ") + (sig.join(",") === "30,149,15" ? " (ATmega328P ✓)" : " (ATmega328P nahi lag raha)"));
     } catch (e) {
       log("⚠️ Signature nahi mili: " + e.message);
+      const alive = await aliveCheck();
+      log(alive
+        ? "ℹ️ Dobara sync karne par jawab aaya: bootloader sun raha hai, par signature command ka jawab nahi deta."
+        : "ℹ️ Dobara sync karne par koi jawab nahi: bootloader sync ke turant baad chup/band ho gaya.");
+      if (!alive) throw new Error("Bootloader sync ke baad band ho gaya (mode=" + mode + ")");
       rxBuf.length = 0;
     }
 
-    // 3) Programming mode
+    // 4) Programming mode
     try {
       await writeBytes([0x50, 0x20]);
       await readReply(0, 1000, "enter progmode");
@@ -1633,7 +1653,7 @@ async function stk500Attempt(port, flashBytes, baud) {
       rxBuf.length = 0;
     }
 
-    // 4) Pages likho
+    // 5) Pages likho
     const PAGE_SIZE = 128;
     const totalPages = Math.ceil(flashBytes.length / PAGE_SIZE);
     for (let page = 0; page < totalPages; page++) {
@@ -1655,7 +1675,7 @@ async function stk500Attempt(port, flashBytes, baud) {
       }
     }
 
-    // 5) Program mode se bahar
+    // 6) Program mode se bahar
     await writeBytes([0x51, 0x20]);
     try { await readReply(0, 500, "leave progmode"); } catch (e) {}
   } finally {
@@ -1669,14 +1689,18 @@ async function stk500Attempt(port, flashBytes, baud) {
   }
 }
 
-// Teen koshish: 115200, phir 57600 (purane bootloader / kuch clones), phir wapas 115200.
+// Teen alag tareeke: IDE jaisa reset, sirf DTR reset, aur manual RESET button.
 async function stk500Flash(port, flashBytes) {
-  const bauds = [115200, 57600, 115200];
+  const plans = [
+    { mode: "avrdude", baud: 115200 },
+    { mode: "dtr", baud: 115200 },
+    { mode: "manual", baud: 115200 }
+  ];
   let lastErr = null;
-  for (let i = 0; i < bauds.length; i++) {
+  for (let i = 0; i < plans.length; i++) {
     try {
-      log("Flash koshish " + (i + 1) + "/" + bauds.length + " (" + bauds[i] + " baud)...");
-      await stk500Attempt(port, flashBytes, bauds[i]);
+      log("Flash koshish " + (i + 1) + "/" + plans.length + " (mode=" + plans[i].mode + ", " + plans[i].baud + " baud)...");
+      await stk500Attempt(port, flashBytes, plans[i].baud, plans[i].mode);
       return;
     } catch (e) {
       lastErr = e;
