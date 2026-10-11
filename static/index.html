@@ -233,6 +233,12 @@
   .theme-btn { flex: 1; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 10px; padding: 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; }
   .theme-btn.active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
   .settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+  #langSelect { background: rgba(255,255,255,0.08); color: #dbe2ee; border: 1px solid rgba(255,255,255,0.18); padding: 6px 10px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+  #langSelect option { color: #1a2233; background: #fff; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 12px; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -2px; }
+  #wiringTable table th, #wiringTable table td { padding: 6px 4px; vertical-align: top; }
 </style>
 </head>
 <body>
@@ -255,19 +261,23 @@
     </div>
     <div class="logo-text">Code<span>2MCU</span></div>
   </div>
-  <div class="tagline">Natural language to Arduino</div>
+  <div class="tagline" data-i18n="tagline">Natural language to Arduino</div>
   <nav>
-    <a class="active" id="navHome" tabindex="0" role="button" onclick="switchView('home', this)"><span class="ic">🏠</span> Home</a>
-    <a id="navHistory" tabindex="0" role="button" onclick="switchView('history', this)"><span class="ic">🕘</span> History</a>
-    <a id="navExamples" tabindex="0" role="button" onclick="switchView('examples', this)"><span class="ic">📖</span> Examples</a>
-    <a id="navBoards" tabindex="0" role="button" onclick="switchView('boards', this)"><span class="ic">🔲</span> Boards</a>
-    <a id="navSerial" tabindex="0" role="button" onclick="switchView('serial', this)"><span class="ic">📟</span> Serial Monitor</a>
-    <a id="navSettings" tabindex="0" role="button" onclick="switchView('settings', this)"><span class="ic">⚙️</span> Settings</a>
+    <a class="active" id="navHome" tabindex="0" role="button" onclick="switchView('home', this)"><span class="ic">🏠</span> <span data-i18n="nav_home">Home</span></a>
+    <a id="navHistory" tabindex="0" role="button" onclick="switchView('history', this)"><span class="ic">🕘</span> <span data-i18n="nav_history">History</span></a>
+    <a id="navExamples" tabindex="0" role="button" onclick="switchView('examples', this)"><span class="ic">📖</span> <span data-i18n="nav_examples">Examples</span></a>
+    <a id="navBoards" tabindex="0" role="button" onclick="switchView('boards', this)"><span class="ic">🔲</span> <span data-i18n="nav_boards">Boards</span></a>
+    <a id="navSerial" tabindex="0" role="button" onclick="switchView('serial', this)"><span class="ic">📟</span> <span data-i18n="nav_serial">Serial Monitor</span></a>
+    <a id="navSettings" tabindex="0" role="button" onclick="switchView('settings', this)"><span class="ic">⚙️</span> <span data-i18n="nav_settings">Settings</span></a>
   </nav>
   <div class="side-tip"><b>💡 New to Arduino?</b>Try example commands to get started.</div>
 </div>
 
 <div class="topbar">
+  <select id="langSelect" onchange="setLang(this.value)" title="Language / भाषा">
+    <option value="en">English</option>
+    <option value="hi">हिन्दी</option>
+  </select>
   <button class="icon-btn theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light / dark theme">☀️</button>
 
   <button class="btn-login" id="loginBtn" onclick="openAuthModal('login')">Log in</button>
@@ -374,9 +384,9 @@
   <div class="grid">
     <div>
       <div class="card">
-        <h3>What do you want to do?</h3>
+        <h3 data-i18n="what_to_do">What do you want to do?</h3>
         <div class="prompt-row">
-          <input type="text" id="command" placeholder="Blink the LED on pin 13 with 1 second delay">
+          <input type="text" id="command" data-i18n-ph="cmd_ph" placeholder="Blink the LED on pin 13 with 1 second delay">
           <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Voice command">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="9" y="2" width="6" height="12" rx="3"></rect>
@@ -385,10 +395,10 @@
               <line x1="8" y1="23" x2="16" y2="23"></line>
             </svg>
           </button>
-          <button class="btn-blue" id="genBtn" onclick="generateCode()">✨ Generate Code</button>
+          <button class="btn-blue" id="genBtn" onclick="generateCode()">✨ <span data-i18n="btn_generate">Generate Code</span></button>
         </div>
         <div class="examples-row">
-          Try these examples:
+          <span data-i18n="try_examples">Try these examples:</span>
           <span class="chip-ex" onclick="setCmd('Blink the LED on pin 13 with 1 second delay')">Blink LED</span>
           <span class="chip-ex" onclick="setCmd('Read temperature from LM35 sensor on pin A0')">Read temperature (LM35)</span>
           <span class="chip-ex" onclick="setCmd('Control a servo motor on pin 9')">Control servo motor</span>
@@ -398,8 +408,8 @@
 
       <div class="card code-card">
         <div class="code-head">
-          <h3><span class="code-badge">&lt;/&gt;</span> Generated Code (Arduino C++)</h3>
-          <button class="btn-copy" onclick="copyCode()">📋 Copy</button>
+          <h3><span class="code-badge">&lt;/&gt;</span> <span data-i18n="code_title">Generated Code (Arduino C++)</span></h3>
+          <button class="btn-copy" onclick="copyCode()">📋 <span data-i18n="btn_copy">Copy</span></button>
         </div>
         <div class="code-body">
           <div class="line-nums" id="lineNums"></div>
@@ -407,9 +417,9 @@
         </div>
         <div class="flash-row">
           <button class="btn-white" id="webSerialBtn" onclick="connectWebSerial()">🔌 Connect via Web Serial</button>
-          <button class="btn-white" id="compileBtn" onclick="compileCode()">⚙️ Compile</button>
-          <button class="btn-green" id="flashBtn" onclick="flashCode()">⚡ Flash to Board</button>
-          <div class="check-row"><input type="checkbox" id="autoScroll" checked> Auto scroll logs</div>
+          <button class="btn-white" id="compileBtn" onclick="compileCode()">⚙️ <span data-i18n="btn_compile">Compile</span></button>
+          <button class="btn-green" id="flashBtn" onclick="flashCode()">⚡ <span data-i18n="btn_flash">Flash to Board</span></button>
+          <div class="check-row"><input type="checkbox" id="autoScroll" checked> <span data-i18n="autoscroll">Auto scroll logs</span></div>
         </div>
         <div class="inline-msg" id="inlineMsg"></div>
         <div class="inline-msg" style="color:var(--muted); padding-top:0;">Web Serial lets the browser flash the board directly — no local backend/COM-port needed. Works for Arduino Uno right now; ESP32/ESP8266 support is coming soon.</div>
@@ -418,20 +428,29 @@
 
     <div>
       <div class="card">
-        <h3>📶 Upload Status</h3>
+        <h3>📶 <span data-i18n="upload_status">Upload Status</span></h3>
         <div id="pipeline">
-          <div class="step"><div class="step-dot" id="dot1">○</div><div><div class="step-title">Code generated</div><div class="step-sub" id="sub1">Waiting...</div></div></div>
-          <div class="step"><div class="step-dot" id="dot2">○</div><div><div class="step-title">Compilation successful</div><div class="step-sub" id="sub2">Waiting...</div></div></div>
-          <div class="step"><div class="step-dot" id="dot3">○</div><div><div class="step-title" id="sub3title">Uploading to board</div><div class="step-sub" id="sub3">Waiting...</div></div></div>
-          <div class="step"><div class="step-dot" id="dot4">○</div><div><div class="step-title">Done</div><div class="step-sub" id="sub4">Waiting...</div></div></div>
+          <div class="step"><div class="step-dot" id="dot1">○</div><div><div class="step-title" data-i18n="step_gen">Code generated</div><div class="step-sub" id="sub1">Waiting...</div></div></div>
+          <div class="step"><div class="step-dot" id="dot2">○</div><div><div class="step-title" data-i18n="step_comp">Compilation successful</div><div class="step-sub" id="sub2">Waiting...</div></div></div>
+          <div class="step"><div class="step-dot" id="dot3">○</div><div><div class="step-title" id="sub3title" data-i18n="step_up">Uploading to board</div><div class="step-sub" id="sub3">Waiting...</div></div></div>
+          <div class="step"><div class="step-dot" id="dot4">○</div><div><div class="step-title" data-i18n="step_done">Done</div><div class="step-sub" id="sub4">Waiting...</div></div></div>
         </div>
       </div>
 
       <div class="card">
-        <h3 style="display:flex; justify-content:space-between; align-items:center;">📟 Serial Monitor <button class="btn-clear" onclick="clearLog()">Clear</button></h3>
+        <h3 style="display:flex; justify-content:space-between; align-items:center;">📟 <span data-i18n="serial_monitor">Serial Monitor</span> <button class="btn-clear" onclick="clearLog()"><span data-i18n="btn_clear">Clear</span></button></h3>
         <div class="terminal" id="terminal">--- Log ---</div>
       </div>
     </div>
+  </div>
+  <div class="card" id="circuitCard">
+    <h3 style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+      <span>🔧 <span data-i18n="circuit_title">Circuit Diagram</span></span>
+      <button class="btn-clear" onclick="downloadCircuitSvg()">⬇️ <span data-i18n="save_svg">Save diagram</span></button>
+    </h3>
+    <div id="circuitBox" style="overflow-x:auto; font-size:13px; color:var(--muted);"></div>
+    <div class="legend" id="circuitLegend"></div>
+    <div id="wiringTable" style="margin-top:16px; font-size:13px;"></div>
   </div>
   </div>
 
@@ -495,7 +514,7 @@
   <div class="view" id="view-boards">
     <div class="card">
       <h3>🔲 Supported boards</h3>
-      <p style="margin:-6px 0 16px; font-size:13px; color:var(--muted);">Selecting a board here updates it everywhere in the app.</p>
+      <p style="margin:-6px 0 16px; font-size:13px; color:var(--muted);">Selecting a board here updates it everywhere in the app. Online version currently compiles and flashes Arduino Uno only.</p>
       <div class="board-grid" id="boardGrid">
         <div class="board-card" id="boardCard-uno">
           <div class="board-card-head"><span class="board-name">Arduino Uno</span><span class="board-tag">Beginner friendly</span></div>
@@ -690,8 +709,102 @@
 <script>
 let currentCode = "";
 let ports = [];
-let portsPollTimer = null;
-let boardPort = null; // the specific port we treat as "the board" — tracked by plug/unplug events, not just list order
+let boardPort = null; // local COM port (cloud par hamesha null rehta hai; board Web Serial se jodte hain)
+
+// ---- Language (English / हिन्दी) ----
+let LANG = "en";
+let currentView = "home";
+const I18N = {
+  en: {
+    tagline: "Natural language to Arduino",
+    nav_home: "Home", nav_history: "History", nav_examples: "Examples", nav_boards: "Boards",
+    nav_serial: "Serial Monitor", nav_settings: "Settings",
+    what_to_do: "What do you want to do?",
+    cmd_ph: "Blink the LED on pin 13 with 1 second delay",
+    btn_generate: "Generate Code", try_examples: "Try these examples:",
+    code_title: "Generated Code (Arduino C++)", btn_copy: "Copy",
+    ws_connect: "Connect via Web Serial", ws_connected: "Web Serial: Connected",
+    btn_compile: "Compile", btn_flash: "Flash to Board", autoscroll: "Auto scroll logs",
+    upload_status: "Upload Status", step_gen: "Code generated", step_comp: "Compilation successful",
+    step_up: "Uploading to board", step_done: "Done",
+    serial_monitor: "Serial Monitor", btn_clear: "Clear",
+    connected: "Connected", no_board: "No board",
+    circuit_title: "Circuit Diagram", save_svg: "Save diagram",
+    circuit_hint: "Generate code and the circuit diagram will appear here automatically.",
+    circuit_making: "⏳ Building circuit diagram...",
+    circuit_none: "No external components are needed for this code.",
+    col_comp: "Component", col_pin: "Part pin", col_board: "Arduino pin", col_via: "In between",
+    leg_5v: "Red = 5V power", leg_gnd: "Black = GND", leg_sig: "Coloured = signal wire", leg_res: "Resistor on the wire",
+    v_home_t: "Turn Your Ideas into Code",
+    v_home_s: "Describe what you want to do, and we'll generate, compile, and flash it to your Arduino.",
+    v_history_t: "History", v_history_s: "Everything you've generated before — reload any past command back into the editor.",
+    v_examples_t: "Examples", v_examples_s: "Pick a ready-made command to try on your board.",
+    v_boards_t: "Boards", v_boards_s: "Choose which microcontroller you're working with.",
+    v_serial_t: "Serial Monitor", v_serial_s: "Live device output, connection stats, and a two-way console for your board.",
+    v_settings_t: "Settings", v_settings_s: "Adjust how Code2MCU looks and behaves."
+  },
+  hi: {
+    tagline: "बोलकर सीधा Arduino कोड",
+    nav_home: "होम", nav_history: "हिस्ट्री", nav_examples: "उदाहरण", nav_boards: "बोर्ड",
+    nav_serial: "सीरियल मॉनिटर", nav_settings: "सेटिंग्स",
+    what_to_do: "आप क्या बनाना चाहते हैं?",
+    cmd_ph: "जैसे: पिन 13 पर LED को 1 सेकंड के delay से ब्लिंक करो",
+    btn_generate: "कोड बनाओ", try_examples: "ये उदाहरण आज़माओ:",
+    code_title: "बना हुआ कोड (Arduino C++)", btn_copy: "कॉपी",
+    ws_connect: "Web Serial से जोड़ो", ws_connected: "Web Serial: जुड़ गया",
+    btn_compile: "कंपाइल", btn_flash: "बोर्ड में डालो", autoscroll: "लॉग अपने-आप स्क्रॉल हों",
+    upload_status: "अपलोड की स्थिति", step_gen: "कोड बन गया", step_comp: "कंपाइल सफल",
+    step_up: "बोर्ड में अपलोड", step_done: "पूरा हुआ",
+    serial_monitor: "सीरियल मॉनिटर", btn_clear: "साफ़ करो",
+    connected: "जुड़ा हुआ", no_board: "बोर्ड नहीं",
+    circuit_title: "सर्किट डायग्राम", save_svg: "डायग्राम सेव करो",
+    circuit_hint: "कोड बनाओ, सर्किट डायग्राम यहाँ अपने-आप बन जाएगा।",
+    circuit_making: "⏳ सर्किट डायग्राम बन रहा है...",
+    circuit_none: "इस कोड के लिए किसी बाहरी कंपोनेंट की ज़रूरत नहीं है।",
+    col_comp: "कंपोनेंट", col_pin: "पार्ट का पिन", col_board: "Arduino पिन", col_via: "बीच में",
+    leg_5v: "लाल = 5V पावर", leg_gnd: "काला = GND", leg_sig: "रंगीन = सिग्नल तार", leg_res: "तार पर रेज़िस्टर",
+    v_home_t: "अपने आइडिया को कोड में बदलो",
+    v_home_s: "बताओ क्या बनाना है — हम कोड बनाएँगे, कंपाइल करेंगे और आपके Arduino में डाल देंगे।",
+    v_history_t: "हिस्ट्री", v_history_s: "अब तक बनाए सभी कमांड — कोई भी वापस एडिटर में लोड करो।",
+    v_examples_t: "उदाहरण", v_examples_s: "बोर्ड पर आज़माने के लिए तैयार कमांड चुनो।",
+    v_boards_t: "बोर्ड", v_boards_s: "चुनो कि आप कौन सा माइक्रोकंट्रोलर इस्तेमाल कर रहे हो।",
+    v_serial_t: "सीरियल मॉनिटर", v_serial_s: "बोर्ड का लाइव आउटपुट, कनेक्शन की जानकारी और दो-तरफ़ा कंसोल।",
+    v_settings_t: "सेटिंग्स", v_settings_s: "Code2MCU कैसा दिखे और कैसे काम करे, यहाँ बदलो।"
+  }
+};
+function t(k) { return (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k; }
+function applyViewTitles() {
+  document.getElementById("viewTitle").textContent = t("v_" + currentView + "_t");
+  document.getElementById("viewSubtitle").textContent = t("v_" + currentView + "_s");
+}
+function updateWsBtn() {
+  const btn = document.getElementById("webSerialBtn");
+  if (btn) btn.textContent = "🔌 " + t(webSerialPort ? "ws_connected" : "ws_connect");
+}
+function applyLanguage() {
+  document.documentElement.setAttribute("lang", LANG);
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.getAttribute("data-i18n")); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = t(el.getAttribute("data-i18n-ph")); });
+  const sel = document.getElementById("langSelect");
+  if (sel) sel.value = LANG;
+  applyViewTitles();
+  updateWsBtn();
+  updateStatus();
+  if (recognition) recognition.lang = (LANG === "hi") ? "hi-IN" : "en-US";
+  if (lastCircuit) renderCircuit(lastCircuit); else showCircuitHint();
+}
+function setLang(l) {
+  LANG = (l === "hi") ? "hi" : "en";
+  try { localStorage.setItem("code2mcu-lang", LANG); } catch (e) {}
+  applyLanguage();
+  log(LANG === "hi" ? "भाषा बदलकर हिन्दी की गई।" : "Language changed to English.");
+}
+function initLang() {
+  let saved = null;
+  try { saved = localStorage.getItem("code2mcu-lang"); } catch (e) {}
+  LANG = (saved === "hi") ? "hi" : "en";
+  applyLanguage();
+}
 
 // ---- Theme (light/dark) ----
 function applyTheme(theme) {
@@ -719,23 +832,14 @@ function initTheme() {
   applyTheme(saved === "dark" ? "dark" : "light");
 }
 
-// ---- View navigation (Home / Generate / Examples / Boards / Serial Monitor / Settings) ----
-const VIEW_INFO = {
-  home: ["Turn Your Ideas into Code", "Describe what you want to do, and we'll generate, compile, and flash it to your Arduino."],
-  history: ["History", "Everything you've generated before — reload any past command back into the editor."],
-  examples: ["Examples", "Pick a ready-made command to try on your board."],
-  boards: ["Boards", "Choose which microcontroller you're working with."],
-  serial: ["Serial Monitor", "Live device output, connection stats, and a two-way console for your board."],
-  settings: ["Settings", "Adjust how Code2MCU looks and behaves."]
-};
+// ---- View navigation ----
 function switchView(view, navEl) {
   document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
   document.getElementById("view-" + view).classList.add("active");
   document.querySelectorAll("nav a").forEach(a => a.classList.remove("active"));
   if (navEl) navEl.classList.add("active");
-  const info = VIEW_INFO[view] || VIEW_INFO.home;
-  document.getElementById("viewTitle").textContent = info[0];
-  document.getElementById("viewSubtitle").textContent = info[1];
+  currentView = view;
+  applyViewTitles();
 }
 function focusSerialMonitor() {
   const card = document.getElementById("terminal").closest(".card");
@@ -791,15 +895,22 @@ function clearLog() {
   const statLines = document.getElementById("statLines");
   if (statLines) statLines.textContent = "0";
 }
-function sendSerialData() {
+
+// Serial Monitor "Send": Web Serial se jude board ko seedha browser se data bhejta hai.
+async function sendSerialData() {
   const input = document.getElementById("serialSendInput");
   const text = input.value.trim();
   if (!text) return;
   log("› " + text);
-  fetch("/serial/send", {
-    method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ data: text, port: boardPort, baud: document.getElementById("baudSelect").value })
-  }).catch(() => {});
+  if (webSerialPort && webSerialPort.writable) {
+    try {
+      const w = webSerialPort.writable.getWriter();
+      await w.write(new TextEncoder().encode(text + "\n"));
+      w.releaseLock();
+    } catch (e) { log("Send failed: " + e.message); }
+  } else {
+    log("Board Web Serial se jura nahi hai — pehle 'Connect via Web Serial' dabao.");
+  }
   input.value = "";
 }
 function updateSessionTimer() {
@@ -820,61 +931,30 @@ function onBoardChange() {
   try { localStorage.setItem("code2mcu-default-board", board); } catch (e) {}
   highlightCurrentBoard(board);
   log("Board changed to: " + board);
+  if (board !== "uno") log("ℹ️ Online version me abhi sirf Arduino Uno compile/flash hota hai.");
 }
 
-// ---- Ports: auto-sense connect / disconnect ----
-// We don't just trust whatever the <select> happens to default to — we track
-// the exact port that was plugged in (boardPort). If that specific port
-// disappears, status goes to "Disconnected" immediately, even if other
-// unrelated ports (e.g. COM3/COM4) are still present on the system.
+// ---- Ports ----
+// Cloud par server ke paas koi COM port nahi hota, isliye ye list khaali rahegi.
+// Board hamesha "Connect via Web Serial" se jurta hai.
 async function loadPorts(silent) {
   try {
     const res = await fetch("/ports");
     const data = await res.json();
-    const newPorts = data.ports || [];
-    const added = newPorts.filter(p => !ports.includes(p));
-    const removed = ports.filter(p => !newPorts.includes(p));
-
-    if (!silent) {
-      added.forEach(p => log("🔌 Board connected on " + p));
-      removed.forEach(p => log("⚠️ Board disconnected from " + p));
-    }
-
-    // The board we were tracking just vanished -> immediately mark disconnected.
-    if (boardPort && removed.includes(boardPort)) {
-      boardPort = null;
-    }
-    // A new port just appeared and we weren't tracking one -> treat it as the board.
-    if (!boardPort && added.length) {
-      boardPort = added[added.length - 1];
-    }
-    // First load with nothing tracked yet: if exactly one port exists, assume it's the board.
-    if (!boardPort && ports.length === 0 && newPorts.length === 1) {
-      boardPort = newPorts[0];
-    }
-    // Safety net: if boardPort is set but somehow isn't in the current list, drop it.
-    if (boardPort && !newPorts.includes(boardPort)) {
-      boardPort = null;
-    }
-
-    ports = newPorts;
-    const sel = document.getElementById("portSelect");
-    sel.innerHTML = ports.length ? ports.map(p => `<option value="${p}">${p}</option>`).join("") : "<option value=''>No board</option>";
-    sel.value = (boardPort && ports.includes(boardPort)) ? boardPort : "";
-    renderPortsList();
-    updateStatus();
+    ports = data.ports || [];
+    if (boardPort && !ports.includes(boardPort)) boardPort = null;
+    if (!boardPort && ports.length === 1) boardPort = ports[0];
   } catch (e) {
-    if (!silent) log("Could not load ports: " + e);
-    // Backend unreachable — treat as no board connected rather than leaving a stale "Connected" state.
-    if (boardPort) log("⚠️ Board disconnected from " + boardPort);
-    boardPort = null;
     ports = [];
-    renderPortsList();
-    updateStatus();
+    boardPort = null;
   }
+  const sel = document.getElementById("portSelect");
+  sel.innerHTML = ports.length ? ports.map(p => `<option value="${p}">${p}</option>`).join("") : "<option value=''>No board</option>";
+  sel.value = (boardPort && ports.includes(boardPort)) ? boardPort : "";
+  renderPortsList();
+  updateStatus();
 }
 document.getElementById("portSelect").onchange = function () {
-  // Manual override: whatever the user picks becomes the tracked board port.
   boardPort = this.value || null;
   updateStatus();
 };
@@ -882,18 +962,17 @@ document.getElementById("portSelect").onchange = function () {
 function renderPortsList() {
   const list = document.getElementById("portsList");
   if (!list) return;
-  list.innerHTML = ports.length
-    ? ports.map(p => `<span class="port-chip">${p === boardPort ? "🟢" : "⚪"} ${escapeHtml(p)}${p === boardPort ? " (board)" : ""}</span>`).join("")
-    : "No board detected. Plug in a board and hit Refresh.";
+  if (webSerialPort) {
+    list.innerHTML = `<span class="port-chip">🟢 Web Serial (board connected)</span>`;
+  } else if (ports.length) {
+    list.innerHTML = ports.map(p => `<span class="port-chip">${p === boardPort ? "🟢" : "⚪"} ${escapeHtml(p)}${p === boardPort ? " (board)" : ""}</span>`).join("");
+  } else {
+    list.innerHTML = "No board connected. Home page par 'Connect via Web Serial' dabao aur apna board chuno.";
+  }
 }
 
 function updateStatus() {
   const port = boardPort || "";
-  // NAYA FIX: pehle sirf local COM port (boardPort) dekhte the — Render (cloud)
-  // par boardPort kabhi milega hi nahi kyunki server ke paas physical port
-  // hota hi nahi, isliye Flash button hamesha disabled reh jaata tha, chahe
-  // Web Serial se board successfully connect kyu na ho gaya ho.
-  // Ab webSerialPort ko bhi "board connected" maana jaata hai.
   const hasBoard = !!(port || webSerialPort);
   const pill = document.getElementById("connStatus");
   const serialPill = document.getElementById("serialStatusPill");
@@ -902,36 +981,20 @@ function updateStatus() {
   const statPort = document.getElementById("statPort");
   if (hasBoard) {
     pill.className = "status-pill";
-    pill.innerHTML = `<span class="dot"></span> Connected`;
-    if (serialPill) { serialPill.className = "status-pill"; serialPill.innerHTML = `<span class="dot"></span> Connected`; }
+    pill.innerHTML = `<span class="dot"></span> ${t("connected")}`;
+    if (serialPill) { serialPill.className = "status-pill"; serialPill.innerHTML = `<span class="dot"></span> ${t("connected")}`; }
     bottomStatus.textContent = port ? ("● Board on " + port) : "● Board connected (Web Serial)";
     bottomReady.textContent = "Ready";
   } else {
     pill.className = "status-pill off";
-    pill.innerHTML = `<span class="dot"></span> No board`;
-    if (serialPill) { serialPill.className = "status-pill off"; serialPill.innerHTML = `<span class="dot"></span> No board`; }
+    pill.innerHTML = `<span class="dot"></span> ${t("no_board")}`;
+    if (serialPill) { serialPill.className = "status-pill off"; serialPill.innerHTML = `<span class="dot"></span> ${t("no_board")}`; }
     bottomStatus.textContent = "○ Not connected";
     bottomReady.textContent = "";
   }
   if (statPort) statPort.textContent = port || (webSerialPort ? "Web Serial" : "—");
   document.getElementById("flashBtn").disabled = !hasBoard;
-}
-
-// Poll the backend every 2s so unplugging/replugging the board is picked up
-// automatically, without the user having to hit "Refresh".
-function startPortsPolling() {
-  if (portsPollTimer) clearInterval(portsPollTimer);
-  portsPollTimer = setInterval(() => loadPorts(false), 2000);
-}
-
-// If the browser exposes the WebSerial API (Chrome/Edge), also listen for the
-// OS-level connect/disconnect events so status updates instantly rather than
-// waiting for the next poll tick.
-function setupWebSerialWatcher() {
-  if (navigator.serial) {
-    navigator.serial.addEventListener("connect", () => { log("USB device connected — checking ports..."); loadPorts(false); });
-    navigator.serial.addEventListener("disconnect", () => { log("USB device disconnected — checking ports..."); loadPorts(false); });
-  }
+  renderPortsList();
 }
 
 function setStep(n, state, sub) {
@@ -943,7 +1006,7 @@ function setStep(n, state, sub) {
 }
 function resetPipeline() { [1,2,3,4].forEach(n => setStep(n, "", "Waiting...")); }
 
-function escapeHtml(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function escapeHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function highlight(code) {
   let h = escapeHtml(code);
   h = h.replace(/(\/\/.*$)/gm, '<span class="cm">$1</span>');
@@ -961,6 +1024,344 @@ function renderCode(code) {
 function copyCode() {
   navigator.clipboard.writeText(document.getElementById("codeText").textContent);
   log("Code copied to clipboard.");
+}
+
+// ---------------------------------------------------------------------------
+// Circuit diagram — generated code se wiring JSON mangta hai (/circuit)
+// aur usse SVG diagram + wiring table banata hai.
+// ---------------------------------------------------------------------------
+const BOARD_PINS = ["5V","3V3","GND","VIN","A0","A1","A2","A3","A4","A5","D13","D12","D11","D10","D9","D8","D7","D6","D5","D4","D3","D2","D1","D0"];
+const PWM_PINS = ["D3","D5","D6","D9","D10","D11"];
+const WIRE_PALETTE = ["#2563eb","#16a34a","#d97706","#9333ea","#0891b2","#db2777","#ea580c","#65a30d"];
+let lastCircuit = null;
+
+function normPin(p) {
+  let s = String(p || "").toUpperCase().replace(/\s+/g, "").replace(/^PIN/, "").replace("~", "");
+  if (/^\d+$/.test(s)) return "D" + s;
+  if (s === "3.3V" || s === "3V3" || s === "+3.3V") return "3V3";
+  if (s === "+5V" || s === "VCC" || s === "5VDC") return "5V";
+  if (s.indexOf("GND") === 0) return "GND";
+  return s;
+}
+function inferType(k) {
+  const known = ["led","rgb_led","button","buzzer","servo","potentiometer","lm35","ultrasonic","pir","dht","relay","motor","lcd_i2c","generic"];
+  const ty = String(k.type || "").toLowerCase();
+  if (known.includes(ty)) return ty;
+  const l = String(k.label || k.name || "").toLowerCase();
+  if (l.includes("rgb")) return "rgb_led";
+  if (/\bled\b/.test(l)) return "led";
+  if (l.includes("servo")) return "servo";
+  if (l.includes("buzzer")) return "buzzer";
+  if (l.includes("button") || l.includes("switch")) return "button";
+  if (l.includes("pot")) return "potentiometer";
+  if (l.includes("lm35") || l.includes("temp")) return "lm35";
+  if (l.includes("ultra") || l.includes("sr04")) return "ultrasonic";
+  if (l.includes("pir")) return "pir";
+  if (l.includes("dht")) return "dht";
+  if (l.includes("relay")) return "relay";
+  if (l.includes("motor")) return "motor";
+  if (l.includes("lcd")) return "lcd_i2c";
+  return "generic";
+}
+function ledColor(label) {
+  const l = String(label || "").toLowerCase();
+  if (l.includes("green")) return "#22c55e";
+  if (l.includes("blue")) return "#3b82f6";
+  if (l.includes("yellow")) return "#facc15";
+  if (l.includes("white")) return "#f1f5f9";
+  if (l.includes("orange")) return "#fb923c";
+  return "#ef4444";
+}
+function bandsFor(via) {
+  const v = String(via).toLowerCase().replace(/\s+/g, "");
+  if (/^10k/.test(v)) return ["#7c2d12", "#111827", "#f97316"];
+  if (/^4\.?7k/.test(v)) return ["#facc15", "#7c3aed", "#dc2626"];
+  if (/^1k/.test(v)) return ["#7c2d12", "#111827", "#dc2626"];
+  if (/^330/.test(v)) return ["#f97316", "#f97316", "#7c2d12"];
+  return ["#dc2626", "#dc2626", "#7c2d12"]; // 220 ohm
+}
+function viaLabel(via) {
+  return String(via).replace(/ohms?/i, "Ω").replace(/\s+/g, "");
+}
+function resistorSvg(x, y, angle, via) {
+  const b = bandsFor(via);
+  return `<g transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${angle.toFixed(1)})">
+    <rect x="-24" y="-8" width="48" height="16" rx="8" fill="#e8cfa6" stroke="#a16207" stroke-width="1.3"/>
+    <rect x="-13" y="-8" width="4" height="16" fill="${b[0]}"/>
+    <rect x="-5" y="-8" width="4" height="16" fill="${b[1]}"/>
+    <rect x="3" y="-8" width="4" height="16" fill="${b[2]}"/>
+    <rect x="14" y="-8" width="3.5" height="16" fill="#d4af37"/>
+  </g>
+  <text x="${x.toFixed(1)}" y="${(y - 16).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e" paint-order="stroke" stroke="#ffffff" stroke-width="4" stroke-linejoin="round">${escapeHtml(viaLabel(via))}</text>`;
+}
+
+// Har component ki chhoti drawing (110 x 76 ke dabbe me)
+function circuitSymbol(type, label, x, y) {
+  let g = "";
+  switch (type) {
+    case "led": {
+      const c = ledColor(label);
+      g = `<path d="M36 44 V26 a19 19 0 0 1 38 0 V44 Z" fill="${c}" stroke="rgba(0,0,0,.35)" stroke-width="2"/>
+        <rect x="30" y="44" width="50" height="6" rx="2" fill="${c}" stroke="rgba(0,0,0,.35)" stroke-width="2"/>
+        <ellipse cx="46" cy="26" rx="5" ry="10" fill="#fff" opacity=".45"/>
+        <line x1="45" y1="50" x2="45" y2="74" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/>
+        <line x1="65" y1="50" x2="65" y2="64" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/>`;
+      break;
+    }
+    case "rgb_led":
+      g = `<path d="M34 44 V26 a21 21 0 0 1 42 0 V44 Z" fill="#e2e8f0" stroke="rgba(0,0,0,.3)" stroke-width="2"/>
+        <rect x="28" y="44" width="54" height="6" rx="2" fill="#e2e8f0" stroke="rgba(0,0,0,.3)" stroke-width="2"/>
+        <circle cx="45" cy="30" r="5" fill="#ef4444"/><circle cx="55" cy="24" r="5" fill="#22c55e"/><circle cx="65" cy="30" r="5" fill="#3b82f6"/>
+        <g stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"><line x1="38" y1="50" x2="38" y2="72"/><line x1="48" y1="50" x2="48" y2="64"/><line x1="62" y1="50" x2="62" y2="72"/><line x1="72" y1="50" x2="72" y2="72"/></g>`;
+      break;
+    case "button":
+      g = `<rect x="22" y="12" width="66" height="52" rx="7" fill="#374151"/>
+        <circle cx="55" cy="38" r="19" fill="#2563eb" stroke="#1e3a8a" stroke-width="2.5"/>
+        <circle cx="55" cy="38" r="10" fill="#93c5fd" opacity=".55"/>
+        <g fill="#cbd5e1"><rect x="14" y="18" width="10" height="6" rx="1"/><rect x="14" y="52" width="10" height="6" rx="1"/><rect x="86" y="18" width="10" height="6" rx="1"/><rect x="86" y="52" width="10" height="6" rx="1"/></g>`;
+      break;
+    case "buzzer":
+      g = `<circle cx="55" cy="38" r="31" fill="#111827" stroke="#000" stroke-width="2"/>
+        <circle cx="55" cy="38" r="22" fill="none" stroke="#374151" stroke-width="2"/>
+        <circle cx="55" cy="38" r="7" fill="#374151"/>
+        <text x="30" y="26" fill="#e5e7eb" font-size="15" font-weight="800">+</text>`;
+      break;
+    case "servo":
+      g = `<rect x="6" y="24" width="72" height="38" rx="4" fill="#2563eb" stroke="#1e3a8a" stroke-width="2"/>
+        <rect x="0" y="34" width="8" height="18" fill="#2563eb" stroke="#1e3a8a" stroke-width="2"/>
+        <rect x="78" y="32" width="16" height="22" fill="#1d4ed8" stroke="#1e3a8a" stroke-width="2"/>
+        <circle cx="94" cy="43" r="9" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+        <rect x="91" y="12" width="7" height="34" rx="3.5" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+        <text x="42" y="47" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">SERVO</text>`;
+      break;
+    case "potentiometer":
+      g = `<circle cx="55" cy="38" r="30" fill="#1d4ed8" stroke="#1e3a8a" stroke-width="2"/>
+        <circle cx="55" cy="38" r="19" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+        <rect x="52" y="14" width="6" height="26" rx="3" fill="#334155"/>`;
+      break;
+    case "lm35":
+      g = `<path d="M26 56 V34 a29 26 0 0 1 58 0 V56 Z" fill="#1f2937" stroke="#000" stroke-width="2"/>
+        <text x="55" y="48" text-anchor="middle" fill="#e5e7eb" font-size="12" font-weight="700">LM35</text>
+        <g stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"><line x1="36" y1="56" x2="36" y2="74"/><line x1="55" y1="56" x2="55" y2="74"/><line x1="74" y1="56" x2="74" y2="74"/></g>`;
+      break;
+    case "ultrasonic":
+      g = `<rect x="4" y="8" width="102" height="56" rx="5" fill="#1d4ed8" stroke="#1e3a8a" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#cbd5e1" stroke="#64748b" stroke-width="2"/><circle cx="32" cy="32" r="10" fill="#94a3b8"/>
+        <circle cx="78" cy="32" r="18" fill="#cbd5e1" stroke="#64748b" stroke-width="2"/><circle cx="78" cy="32" r="10" fill="#94a3b8"/>
+        <text x="55" y="60" text-anchor="middle" fill="#fff" font-size="8.5" font-weight="700">HC-SR04</text>
+        <g fill="#facc15"><rect x="30" y="64" width="5" height="9"/><rect x="45" y="64" width="5" height="9"/><rect x="60" y="64" width="5" height="9"/><rect x="75" y="64" width="5" height="9"/></g>`;
+      break;
+    case "pir":
+      g = `<rect x="14" y="8" width="82" height="58" rx="5" fill="#15803d" stroke="#14532d" stroke-width="2"/>
+        <circle cx="55" cy="34" r="23" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+        <circle cx="55" cy="34" r="13" fill="#e2e8f0"/>
+        <g fill="#facc15"><rect x="34" y="66" width="5" height="8"/><rect x="52" y="66" width="5" height="8"/><rect x="70" y="66" width="5" height="8"/></g>`;
+      break;
+    case "dht":
+      g = `<rect x="26" y="6" width="58" height="56" rx="5" fill="#38bdf8" stroke="#0369a1" stroke-width="2"/>
+        <g stroke="#0369a1" stroke-width="1.5" opacity=".6"><line x1="34" y1="14" x2="76" y2="14"/><line x1="34" y1="24" x2="76" y2="24"/><line x1="34" y1="34" x2="76" y2="34"/><line x1="34" y1="44" x2="76" y2="44"/></g>
+        <text x="55" y="56" text-anchor="middle" fill="#fff" font-size="10" font-weight="800">DHT</text>
+        <g stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"><line x1="36" y1="62" x2="36" y2="74"/><line x1="48" y1="62" x2="48" y2="74"/><line x1="62" y1="62" x2="62" y2="74"/><line x1="74" y1="62" x2="74" y2="74"/></g>`;
+      break;
+    case "relay":
+      g = `<rect x="8" y="10" width="94" height="56" rx="5" fill="#1d4ed8" stroke="#1e3a8a" stroke-width="2"/>
+        <rect x="22" y="18" width="36" height="34" rx="3" fill="#0f172a"/>
+        <text x="80" y="42" text-anchor="middle" fill="#fff" font-size="10" font-weight="800">RELAY</text>
+        <g fill="#16a34a"><rect x="70" y="52" width="10" height="8"/><rect x="84" y="52" width="10" height="8"/></g>`;
+      break;
+    case "motor":
+      g = `<circle cx="50" cy="38" r="30" fill="#9ca3af" stroke="#4b5563" stroke-width="2.5"/>
+        <rect x="78" y="33" width="26" height="10" rx="3" fill="#e5e7eb" stroke="#6b7280" stroke-width="1.5"/>
+        <text x="50" y="48" text-anchor="middle" fill="#fff" font-size="28" font-weight="800">M</text>`;
+      break;
+    case "lcd_i2c":
+      g = `<rect x="2" y="8" width="106" height="56" rx="5" fill="#15803d" stroke="#14532d" stroke-width="2"/>
+        <rect x="10" y="15" width="90" height="38" rx="3" fill="#2dd4bf" stroke="#115e59" stroke-width="1.5"/>
+        <g fill="#0f766e" opacity=".75"><rect x="15" y="22" width="60" height="6"/><rect x="15" y="36" width="44" height="6"/></g>`;
+      break;
+    default:
+      g = `<rect x="20" y="12" width="70" height="52" rx="6" fill="#475569" stroke="#1e293b" stroke-width="2"/>
+        <text x="55" y="44" text-anchor="middle" fill="#fff" font-size="16" font-weight="800">IC</text>
+        <g stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"><line x1="10" y1="24" x2="20" y2="24"/><line x1="10" y1="40" x2="20" y2="40"/><line x1="10" y1="54" x2="20" y2="54"/><line x1="90" y1="24" x2="100" y2="24"/><line x1="90" y1="40" x2="100" y2="40"/><line x1="90" y1="54" x2="100" y2="54"/></g>`;
+  }
+  return `<g transform="translate(${x},${y})">${g}</g>`;
+}
+
+function showCircuitHint() {
+  const box = document.getElementById("circuitBox");
+  if (!box) return;
+  box.textContent = t("circuit_hint");
+  document.getElementById("circuitLegend").innerHTML = "";
+  document.getElementById("wiringTable").innerHTML = "";
+}
+
+async function generateCircuit(code) {
+  const box = document.getElementById("circuitBox");
+  lastCircuit = null;
+  box.textContent = t("circuit_making");
+  document.getElementById("circuitLegend").innerHTML = "";
+  document.getElementById("wiringTable").innerHTML = "";
+  try {
+    const res = await fetch("/circuit", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ code, board: document.getElementById("boardSelect").value, lang: LANG })
+    });
+    const data = await res.json();
+    if (data.error || !data.circuit) { box.textContent = "⚠️ " + (data.error || "Circuit nahi ban paya."); return; }
+    renderCircuit(data.circuit);
+    log("Circuit diagram ready.");
+  } catch (e) {
+    box.textContent = "⚠️ Circuit error: " + e;
+  }
+}
+
+function renderCircuit(c) {
+  lastCircuit = c;
+  const box = document.getElementById("circuitBox");
+  const raw = c.components || [];
+  if (!raw.length) {
+    box.textContent = t("circuit_none");
+    document.getElementById("circuitLegend").innerHTML = "";
+    document.getElementById("wiringTable").innerHTML = "";
+    return;
+  }
+
+  const comps = raw.map(k => {
+    const pinsRaw = k.pins || (k.connections || []).map(x => ({ name: x.part_pin, board_pin: x.board_pin, via: x.via }));
+    return {
+      label: k.label || k.name || "Component",
+      type: inferType(k),
+      pins: pinsRaw.map(p => ({ name: p.name || "", pin: normPin(p.board_pin), via: p.via || "" }))
+    };
+  });
+
+  const pinList = BOARD_PINS.slice();
+  const used = new Set();
+  comps.forEach(k => k.pins.forEach(p => { used.add(p.pin); if (!pinList.includes(p.pin)) pinList.push(p.pin); }));
+
+  // ---- layout ----
+  const W = 900, PIN_GAP = 22, BX = 30, BY = 20, BW = 230, HEAD = 56;
+  const boardH = HEAD + pinList.length * PIN_GAP + 30;
+  const pinX = BX + BW;
+  const pinY = pn => BY + HEAD + pinList.indexOf(pn) * PIN_GAP + 10;
+  const CX = 570, CW = 300, GAP = 18;
+  let cy = BY;
+  comps.forEach(k => { k.h = Math.max(116, 56 + k.pins.length * 26 + 12); k.top = cy; cy += k.h + GAP; });
+  const H = Math.max(BY + boardH, cy - GAP + BY) + 12;
+
+  // ---- wire colours ----
+  const sig = {};
+  let ci = 0;
+  pinList.forEach(pn => {
+    if (!used.has(pn)) return;
+    sig[pn] = pn === "GND" ? "#111827" : (pn === "5V" || pn === "VIN") ? "#dc2626" : pn === "3V3" ? "#f97316" : WIRE_PALETTE[ci++ % WIRE_PALETTE.length];
+  });
+
+  let s = `<svg id="circuitSvg" viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Inter, Arial, sans-serif" style="max-width:980px;display:block;margin:0 auto;">`;
+  s += `<defs>
+    <pattern id="gridp" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.2" fill="#cbd5e1"/></pattern>
+    <filter id="sh" x="-10%" y="-10%" width="125%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity=".18"/></filter>
+    <linearGradient id="boardg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00a3ac"/><stop offset="1" stop-color="#00747b"/></linearGradient>
+  </defs>`;
+  s += `<rect width="${W}" height="${H}" rx="16" fill="#f8fafc"/><rect width="${W}" height="${H}" rx="16" fill="url(#gridp)"/>`;
+
+  // ---- Arduino Uno board ----
+  s += `<g filter="url(#sh)"><rect x="${BX}" y="${BY}" width="${BW}" height="${boardH}" rx="16" fill="url(#boardg)" stroke="#005d63" stroke-width="3"/></g>`;
+  s += `<rect x="${BX - 18}" y="${BY + 34}" width="60" height="54" rx="4" fill="#cbd5e1" stroke="#64748b" stroke-width="2"/><rect x="${BX - 8}" y="${BY + 44}" width="42" height="34" rx="2" fill="#94a3b8"/><text x="${BX + 12}" y="${BY + 66}" text-anchor="middle" font-size="9" fill="#334155" font-weight="700">USB</text>`;
+  s += `<rect x="${BX - 18}" y="${BY + boardH - 124}" width="60" height="62" rx="4" fill="#1f2937" stroke="#0f172a" stroke-width="2"/><circle cx="${BX + 12}" cy="${BY + boardH - 93}" r="11" fill="#0b1220" stroke="#475569" stroke-width="2"/>`;
+  s += `<circle cx="${BX + 92}" cy="${BY + 28}" r="10" fill="#dc2626" stroke="#7f1d1d" stroke-width="2.5"/><text x="${BX + 110}" y="${BY + 32}" font-size="9" fill="#e6fffe" opacity=".85">RESET</text>`;
+  s += `<circle cx="${BX + 160}" cy="${BY + 28}" r="4" fill="#4ade80"/><text x="${BX + 168}" y="${BY + 32}" font-size="9" fill="#e6fffe" opacity=".85">ON</text>`;
+  const chipY = BY + boardH / 2 - 52;
+  s += `<rect x="${BX + 78}" y="${chipY}" width="62" height="104" rx="4" fill="#111827"/>`;
+  for (let i = 0; i < 10; i++) {
+    s += `<rect x="${BX + 72}" y="${chipY + 6 + i * 10}" width="6" height="4" fill="#cbd5e1"/><rect x="${BX + 140}" y="${chipY + 6 + i * 10}" width="6" height="4" fill="#cbd5e1"/>`;
+  }
+  s += `<text transform="translate(${BX + 113},${chipY + 52}) rotate(-90)" text-anchor="middle" font-size="10" fill="#9ca3af" font-weight="700">ATMEGA328P</text>`;
+  s += `<rect x="${BX + 48}" y="${chipY + 38}" width="14" height="28" rx="7" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>`;
+  s += `<text x="${BX + 28}" y="${BY + boardH - 22}" font-size="19" font-weight="800" fill="#fff" letter-spacing="1">ARDUINO</text><text x="${BX + 132}" y="${BY + boardH - 22}" font-size="19" font-weight="800" fill="#bff4f2">UNO</text>`;
+
+  // header strip + pins
+  const firstY = pinY(pinList[0]);
+  s += `<rect x="${pinX - 22}" y="${firstY - 13}" width="22" height="${pinList.length * PIN_GAP + 2}" rx="3" fill="#111827"/>`;
+  pinList.forEach(pn => {
+    const py = pinY(pn);
+    const isUsed = used.has(pn);
+    const lbl = pn + (PWM_PINS.includes(pn) ? "~" : "");
+    if (isUsed) {
+      s += `<circle cx="${pinX - 11}" cy="${py}" r="6.5" fill="${sig[pn]}" stroke="#fff" stroke-width="2.2"/>`;
+    } else {
+      s += `<circle cx="${pinX - 11}" cy="${py}" r="3.8" fill="#facc15" stroke="#a16207" stroke-width="1"/>`;
+    }
+    s += `<text x="${pinX - 28}" y="${py + 4}" text-anchor="end" font-size="11" fill="#fff" ${isUsed ? 'font-weight="800"' : 'opacity=".7"'}>${escapeHtml(lbl)}</text>`;
+  });
+  const groups = [["POWER", 0, 3], ["ANALOG IN", 4, 9], ["DIGITAL", 10, 23]];
+  groups.forEach(g => {
+    if (g[2] >= pinList.length) g[2] = pinList.length - 1;
+    const y0 = pinY(pinList[g[1]]), y1 = pinY(pinList[g[2]]);
+    s += `<text transform="translate(${pinX - 72},${(y0 + y1) / 2}) rotate(-90)" text-anchor="middle" font-size="9.5" fill="#d9fffd" opacity=".8" letter-spacing="1.5" font-weight="700">${g[0]}</text>`;
+    s += `<line x1="${pinX - 62}" y1="${y0 - 9}" x2="${pinX - 62}" y2="${y1 + 9}" stroke="#d9fffd" opacity=".35" stroke-width="1.5"/>`;
+  });
+
+  // ---- component cards ----
+  comps.forEach(k => {
+    s += `<g filter="url(#sh)"><rect x="${CX}" y="${k.top}" width="${CW}" height="${k.h}" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/></g>`;
+    s += `<path d="M${CX} ${k.top + 34} V${k.top + 14} a14 14 0 0 1 14 -14 H${CX + CW - 14} a14 14 0 0 1 14 14 V${k.top + 34} Z" fill="#eef2ff"/>`;
+    s += `<text x="${CX + 16}" y="${k.top + 22}" font-size="13.5" font-weight="800" fill="#1e293b">${escapeHtml(String(k.label).slice(0, 26))}</text>`;
+    s += circuitSymbol(k.type, k.label, CX + CW - 126, k.top + 36 + Math.max(0, (k.h - 36 - 76) / 2));
+    k.pins.forEach((p, j) => {
+      const ty = k.top + 58 + j * 26;
+      s += `<text x="${CX + 18}" y="${ty + 4}" font-size="11.5" fill="#334155" font-weight="600">${escapeHtml(String(p.name).slice(0, 17))}</text>`;
+    });
+  });
+
+  // ---- wires + resistors ----
+  let wires = "", parts = "", w = 0;
+  comps.forEach(k => k.pins.forEach((p, j) => {
+    const x1 = pinX - 11, y1 = pinY(p.pin), x2 = CX, y2 = k.top + 58 + j * 26;
+    const col = sig[p.pin];
+    const cxm = x1 + (x2 - x1) * (0.30 + (w % 7) * 0.06);
+    const d = `M${x1} ${y1} C${cxm} ${y1}, ${cxm} ${y2}, ${x2} ${y2}`;
+    wires += `<path d="${d}" stroke="#ffffff" stroke-width="7.5" fill="none" stroke-linecap="round" opacity=".95"/>`;
+    wires += `<path d="${d}" stroke="${col}" stroke-width="3.8" fill="none" stroke-linecap="round"/>`;
+    wires += `<circle cx="${x2}" cy="${y2}" r="6.5" fill="#ffffff" stroke="${col}" stroke-width="3.2"/>`;
+    if (p.via) {
+      const xm = (x1 + 6 * cxm + x2) / 8, ym = (y1 + y2) / 2;
+      let ang = Math.atan2(2 * (y2 - y1), (x2 - x1)) * 180 / Math.PI;
+      ang = Math.max(-80, Math.min(80, ang));
+      parts += resistorSvg(xm, ym, ang, p.via);
+    }
+    w++;
+  }));
+  s += wires + parts + `</svg>`;
+  box.innerHTML = s;
+
+  document.getElementById("circuitLegend").innerHTML =
+    `<span><i style="background:#dc2626"></i>${t("leg_5v")}</span>` +
+    `<span><i style="background:#111827"></i>${t("leg_gnd")}</span>` +
+    `<span><i style="background:#2563eb"></i>${t("leg_sig")}</span>` +
+    `<span><i style="background:#e8cfa6;border:1px solid #a16207"></i>${t("leg_res")}</span>`;
+
+  let tb = `<table style="width:100%; border-collapse:collapse;"><tr style="text-align:left; color:var(--muted);"><th>${t("col_comp")}</th><th>${t("col_pin")}</th><th>${t("col_board")}</th><th>${t("col_via")}</th></tr>`;
+  comps.forEach(k => k.pins.forEach(p => {
+    tb += `<tr style="border-top:1px solid var(--border);"><td>${escapeHtml(k.label)}</td><td>${escapeHtml(p.name)}</td>` +
+      `<td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${sig[p.pin]};margin-right:6px;"></span><b>${escapeHtml(p.pin)}</b></td>` +
+      `<td>${escapeHtml(p.via ? viaLabel(p.via) : "—")}</td></tr>`;
+  }));
+  tb += `</table>`;
+  if (c.notes) tb += `<div style="margin-top:12px; color:var(--muted);">💡 ${escapeHtml(c.notes)}</div>`;
+  document.getElementById("wiringTable").innerHTML = tb;
+}
+
+function downloadCircuitSvg() {
+  const svg = document.getElementById("circuitSvg");
+  if (!svg) { log("Pehle code generate karo, tab diagram save hoga."); return; }
+  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(svg);
+  const blob = new Blob([xml], { type: "image/svg+xml" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "code2mcu-circuit.svg";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
 }
 
 async function generateCode() {
@@ -985,12 +1386,14 @@ async function generateCode() {
       return;
     }
     currentCode = data.code;
+    lastFirmware = null; // naya code aaya, purana compile result bekaar
     renderCode(currentCode);
     setStep(1, "done", "Just now");
     log("Code generated successfully.");
     playCompletionSound();
     showDesktopNotification("Code2MCU", "Code generated for: " + command);
     addToHistory(command, currentCode, document.getElementById("boardSelect").value);
+    generateCircuit(currentCode);
   } catch (e) {
     setStep(1, "fail", "Error");
     log("Generate failed: " + e);
@@ -1006,19 +1409,14 @@ async function compileCode() {
   try {
     const res = await fetch("/compile", {
       method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ board })
+      body: JSON.stringify({ board, code: currentCode })
     });
     const data = await res.json();
     const secs = ((performance.now() - start) / 1000).toFixed(1);
     if (data.compile_success) {
       setStep(2, "done", "Build completed in " + secs + "s");
-      log("Compile successful:\n" + data.compile_output);
-      if (data.firmware_ready && data.firmware_files && data.firmware_files.length) {
-        lastFirmware = { files: data.firmware_files, board: data.board, fileType: data.file_type };
-        log("Firmware ready: " + data.firmware_files.join(", "));
-      } else {
-        lastFirmware = null;
-      }
+      log("Compile successful");
+      lastFirmware = { hex: data.hex_text, board: data.board, fileType: data.file_type };
     } else {
       setStep(2, "fail", "Build failed");
       log("Compile FAILED:\n" + data.compile_output);
@@ -1033,43 +1431,16 @@ async function compileCode() {
 
 async function flashCode() {
   const board = document.getElementById("boardSelect").value;
-  // If a board is connected directly via Web Serial (browser-native, no backend
-  // COM-port dependency), flash straight from the browser instead of asking the
-  // backend to talk to a local COM port.
   if (webSerialPort) {
     await flashViaWebSerial(board);
     return;
   }
-  const port = document.getElementById("portSelect").value;
-  if (!port) { log("No port selected. Connect a board via Web Serial, or select a local COM port."); return; }
-  setStep(3, "active", "Uploading firmware...");
-  log("Flashing to " + port + "...");
-  try {
-    const res = await fetch("/flash", {
-      method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ port, board })
-    });
-    const data = await res.json();
-    if (data.upload_success) {
-      setStep(3, "done", "Uploaded to " + port);
-      setStep(4, "done", "Code flashed successfully!");
-      log("Flash successful:\n" + data.upload_output);
-      log("--- Serial Monitor (" + port + ") ---\nDevice ready.\nFirmware running.");
-      playCompletionSound();
-      showDesktopNotification("Code2MCU", "Flashed successfully to " + port + ".");
-    } else {
-      setStep(3, "fail", "Upload failed");
-      log("Flash FAILED:\n" + data.upload_output);
-    }
-  } catch (e) {
-    setStep(3, "fail", "Error");
-    log("Flash error: " + e);
-  }
+  log("Board connected nahi hai. Pehle 'Connect via Web Serial' dabao aur apna board chuno.");
 }
 
-// ---- Web Serial: direct browser-to-board connect & flash (no backend / arduino-cli needed to detect the port) ----
+// ---- Web Serial: browser se seedha board se connect & flash ----
 let webSerialPort = null;
-let lastFirmware = null; // { files, board, fileType } from the most recent successful compile
+let lastFirmware = null; // { hex, board, fileType } — last successful compile ka result
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -1083,24 +1454,46 @@ async function connectWebSerial() {
     await port.open({ baudRate: 115200 });
     webSerialPort = port;
     const btn = document.getElementById("webSerialBtn");
-    if (btn) { btn.textContent = "🔌 Web Serial: Connected"; btn.classList.add("ws-connected"); }
-    updateStatus(); // NAYA: flashBtn turant enable ho, agli 2s poll ka wait na karna pade
+    if (btn) { btn.classList.add("ws-connected"); } updateWsBtn();
+    updateStatus();
     log("✅ Board connected via Web Serial — you can flash directly from the browser now.");
   } catch (e) {
     log("Web Serial connection cancelled or failed: " + e.message);
   }
 }
+
+// Pehle se permission diya hua board (ek hi ho to) page khulte hi apne-aap jud jaye.
+async function autoReconnect() {
+  if (!("serial" in navigator)) return;
+  try {
+    const granted = await navigator.serial.getPorts();
+    if (granted.length === 1) {
+      await granted[0].open({ baudRate: 115200 });
+      webSerialPort = granted[0];
+      const btn = document.getElementById("webSerialBtn");
+      if (btn) btn.classList.add("ws-connected");
+      updateWsBtn();
+      updateStatus();
+      log("✅ Pichhla board apne-aap jud gaya.");
+    }
+  } catch (e) { /* port busy ho ya hat gaya ho — chup-chaap ignore */ }
+}
+
+// USB plug/unplug events
 navigator.serial && navigator.serial.addEventListener && navigator.serial.addEventListener("disconnect", (e) => {
   if (webSerialPort && e.target === webSerialPort) {
     webSerialPort = null;
     const btn = document.getElementById("webSerialBtn");
-    if (btn) { btn.textContent = "🔌 Connect via Web Serial"; btn.classList.remove("ws-connected"); }
-    updateStatus(); // NAYA: agar local port bhi nahi hai to flashBtn wapas disable ho jaye
+    if (btn) { btn.classList.remove("ws-connected"); } updateWsBtn();
+    updateStatus();
     log("⚠️ Board disconnected (Web Serial).");
   }
 });
+navigator.serial && navigator.serial.addEventListener && navigator.serial.addEventListener("connect", () => {
+  if (!webSerialPort) autoReconnect();
+});
 
-// Parses an Intel HEX (.hex) text file into a flat byte array representing flash memory.
+// Intel HEX (.hex) text ko flash memory ke byte array me badalta hai.
 function parseIntelHex(hexText) {
   const lines = hexText.split(/\r?\n/).filter(l => l.trim().startsWith(":"));
   let extAddr = 0;
@@ -1130,39 +1523,52 @@ function parseIntelHex(hexText) {
   return flash;
 }
 
-// STK500v1 (Optiboot / "arduino" programmer) uploader over Web Serial — used by
-// stock Arduino Uno bootloaders. Resets the board via DTR, syncs, then writes
-// flash in 128-byte pages.
+// STK500v1 (Optiboot) uploader over Web Serial — Arduino Uno ke liye.
 async function stk500Flash(port, flashBytes) {
   const writer = port.writable.getWriter();
   const reader = port.readable.getReader();
+
+  // Ek hi background loop saara data rxBuf me jama karta hai (taaki koi jawab kho na jaye).
+  let rxBuf = [];
+  let stopReading = false;
+  const readLoop = (async () => {
+    try {
+      while (!stopReading) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) for (const b of value) rxBuf.push(b);
+      }
+    } catch (e) { /* reader release hone par yahan aata hai */ }
+  })();
+
   async function writeBytes(bytes) { await writer.write(new Uint8Array(bytes)); }
   async function readBytes(n, timeoutMs) {
     timeoutMs = timeoutMs || 1000;
-    let received = [];
     const start = Date.now();
-    while (received.length < n) {
+    while (rxBuf.length < n) {
       if (Date.now() - start > timeoutMs) throw new Error("Timeout waiting for bootloader response");
-      const { value } = await Promise.race([reader.read(), sleep(50).then(() => ({ value: undefined }))]);
-      if (value) received = received.concat(Array.from(value));
+      await sleep(5);
     }
-    return received.slice(0, n);
+    return rxBuf.splice(0, n);
   }
-  try {
-    await port.setSignals({ dataTerminalReady: false, requestToSend: false });
-    await sleep(250);
-    await port.setSignals({ dataTerminalReady: true, requestToSend: true });
-    await sleep(600);
 
+  try {
     let synced = false;
-    for (let i = 0; i < 12 && !synced; i++) {
-      await writeBytes([0x30, 0x20]); // STK_GET_SYNC, CRC_EOP
-      try {
-        const resp = await readBytes(2, 400);
-        if (resp[0] === 0x14 && resp[1] === 0x10) synced = true;
-      } catch (e) { /* retry */ }
+    for (let attempt = 0; attempt < 3 && !synced; attempt++) {
+      await port.setSignals({ dataTerminalReady: false, requestToSend: false });
+      await sleep(250);
+      await port.setSignals({ dataTerminalReady: true, requestToSend: true });
+      await sleep(80);
+      for (let i = 0; i < 12 && !synced; i++) {
+        rxBuf.length = 0;
+        await writeBytes([0x30, 0x20]);   // STK_GET_SYNC, CRC_EOP
+        try {
+          const resp = await readBytes(2, 120);
+          if (resp[0] === 0x14 && resp[1] === 0x10) synced = true;
+        } catch (e) { /* dobara try */ }
+      }
     }
-    if (!synced) throw new Error("Could not sync with the bootloader. Try pressing reset on the board, or reconnect.");
+    if (!synced) throw new Error("Could not sync with the bootloader. Check: board Uno hai?, koi aur app (Arduino IDE / Serial Monitor) port use to nahi kar raha?, Nano/clone ho to baud 57600 chahiye.");
     log("Synced with bootloader.");
 
     const PAGE_SIZE = 128;
@@ -1188,28 +1594,25 @@ async function stk500Flash(port, flashBytes) {
     await writeBytes([0x51, 0x20]); // STK_LEAVE_PROGMODE
     try { await readBytes(2, 500); } catch (e) {}
   } finally {
+    stopReading = true;
+    try { reader.releaseLock(); }
+    catch (e) { try { await reader.cancel(); } catch (_) {} try { reader.releaseLock(); } catch (_) {} }
+    await readLoop;
     writer.releaseLock();
-    reader.releaseLock();
   }
 }
 
 async function flashViaWebSerial(board) {
   if (!webSerialPort) { log("Connect a board via Web Serial first."); return; }
-  if (!lastFirmware || !lastFirmware.files || !lastFirmware.files.length) { log("Compile the sketch first."); return; }
+  if (!lastFirmware || !lastFirmware.hex) { log("Pehle Compile karo."); return; }
   if (lastFirmware.fileType !== "hex") {
-    log("⚠️ ESP32/ESP8266 flashing over Web Serial isn't supported yet — please flash locally via arduino-cli for now.");
+    log("⚠️ ESP32/ESP8266 flashing over Web Serial isn't supported yet.");
     return;
   }
-  const hexFile = lastFirmware.files.find(f => f.endsWith(".hex"));
-  if (!hexFile) { log("No .hex firmware file found from the last compile."); return; }
 
   setStep(3, "active", "Flashing via Web Serial...");
-  log("Fetching compiled firmware: " + hexFile);
   try {
-    const res = await fetch("/download-firmware/" + encodeURIComponent(hexFile));
-    if (!res.ok) throw new Error("Could not download firmware (status " + res.status + ")");
-    const hexText = await res.text();
-    const flashBytes = parseIntelHex(hexText);
+    const flashBytes = parseIntelHex(lastFirmware.hex);
     log("Parsed firmware: " + flashBytes.length + " bytes.");
 
     await stk500Flash(webSerialPort, flashBytes);
@@ -1275,7 +1678,7 @@ function stopListening() {
   document.getElementById("micBtn").classList.remove("listening");
 }
 
-// ---- Auth (login / signup) ----
+// ---- Auth (login / signup) — sirf is browser ke localStorage me, asli security nahi ----
 let currentUser = null;
 
 function loadUsersDb() {
@@ -1447,11 +1850,13 @@ function loadFromHistory(index) {
   document.getElementById("boardSelect").value = item.board;
   onBoardChange();
   currentCode = item.code;
+  lastFirmware = null;
   renderCode(currentCode);
   resetPipeline();
   setStep(1, "done", "Loaded from history");
   switchView("home", document.getElementById("navHome"));
   log("Reloaded from history: " + item.command);
+  generateCircuit(currentCode);
 }
 function boardLabel(b) {
   return { uno: "Arduino Uno", esp32: "ESP32", esp8266: "ESP8266", rpi: "Raspberry Pi" }[b] || b;
@@ -1476,7 +1881,7 @@ function renderHistory() {
   `).join("");
 }
 
-// ---- Editor preferences (font size, word wrap) ----
+// ---- Editor preferences ----
 function loadEditorPrefs() {
   let prefs = { fontSize: "13", wordWrap: false };
   try { prefs = Object.assign(prefs, JSON.parse(localStorage.getItem("code2mcu-editor-prefs") || "{}")); } catch (e) {}
@@ -1505,7 +1910,7 @@ function loadNotifPrefs() {
   let prefs = { sound: false, desktop: false };
   try { prefs = Object.assign(prefs, JSON.parse(localStorage.getItem("code2mcu-notif-prefs") || "{}")); } catch (e) {}
   document.getElementById("soundToggle").checked = prefs.sound;
-  document.getElementById("desktopNotifToggle").checked = prefs.desktop && Notification && Notification.permission === "granted";
+  document.getElementById("desktopNotifToggle").checked = !!(prefs.desktop && ("Notification" in window) && Notification.permission === "granted");
 }
 function saveNotifPrefs() {
   const prefs = getNotifPrefs();
@@ -1617,9 +2022,9 @@ loadNotifPrefs();
   }
 })();
 loadPorts(true);
-startPortsPolling();
-setupWebSerialWatcher();
 highlightCurrentBoard(document.getElementById("boardSelect").value);
+initLang();
+autoReconnect();
 document.querySelectorAll("nav a").forEach(a => {
   a.addEventListener("keydown", function (e) {
     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); this.click(); }

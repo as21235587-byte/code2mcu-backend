@@ -1,6 +1,5 @@
 .env
 __pycache__/
 *.pyc
-venv/
-build_output/
 generated_sketch/
+build_output/

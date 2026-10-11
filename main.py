@@ -10,6 +10,7 @@ import os
 import glob
 import shutil
 import subprocess
+import json  # NAYA: circuit JSON parse karne ke liye
 
 load_dotenv()
 
@@ -40,6 +41,9 @@ SKETCH_FILE = os.path.join(SKETCH_DIR, "generated_sketch.ino")
 
 # --- NAYA: har compile ka output ek fixed, jaana-pehchana folder me jaayega ---
 BUILD_DIR = "build_output"
+
+# NAYA: arduino-cli ka path. Pehle .env ka ARDUINO_CLI_PATH dekhta hai, fir PATH, fir plain naam.
+ARDUINO_CLI = os.getenv("ARDUINO_CLI_PATH") or shutil.which("arduino-cli") or "arduino-cli"
 
 BOARD_FQBN = {
     "uno": "arduino:avr:uno",
@@ -119,6 +123,70 @@ def generate_code(request: CommandRequest):
     return {"error": None, "code": generated_code}
 
 
+# ---------------------------------------------------------------------------
+# NAYA: /circuit — generated code ko padhkar wiring / circuit JSON banata hai.
+# Frontend is JSON se diagram aur wiring table draw karta hai.
+# ---------------------------------------------------------------------------
+class CircuitRequest(BaseModel):
+    code: str
+    board: str = "uno"
+    lang: str = "en"   # "en" ya "hi" — notes isi bhasha me aayenge
+
+@app.post("/circuit")
+def make_circuit(request: CircuitRequest):
+    """Generated code padhkar professional diagram ke liye typed wiring JSON banata hai."""
+    notes_lang = (
+        "Write the 'notes' field in simple Hindi (Devanagari script)."
+        if request.lang == "hi" else
+        "Write the 'notes' field in simple English."
+    )
+    system_prompt = (
+        "You are an electronics assistant for beginners. Read the given Arduino sketch and "
+        "output ONLY one JSON object (no explanation, no markdown, no code fences) "
+        "describing the physical circuit needed to run it.\n\n"
+        "Exact format:\n"
+        '{"components":[{"type":"led","label":"Red LED","pins":['
+        '{"name":"Anode (+)","board_pin":"D9","via":"220 ohm"},'
+        '{"name":"Cathode (-)","board_pin":"GND","via":""}]}],'
+        '"notes":"one or two short tips"}\n\n'
+        "Rules:\n"
+        "1. type must be exactly one of: led, rgb_led, button, buzzer, servo, potentiometer, "
+        "lm35, ultrasonic, pir, dht, relay, motor, lcd_i2c, generic.\n"
+        "2. board_pin must be exactly one of: D0..D13, A0..A5, 5V, 3V3, GND, VIN.\n"
+        "3. via is the part placed in series on that wire: '220 ohm' or '10k ohm' or '' (empty).\n"
+        "4. Every LED needs a 220 ohm resistor on its anode wire. For rgb_led use pins "
+        "Red, Green, Blue (each with 220 ohm) and Common cathode (-) to GND.\n"
+        "5. Button: pin 1 to the Arduino pin used in the code, pin 2 to GND (code uses INPUT_PULLUP). "
+        "If the code uses plain INPUT, add a 10k ohm pull-down from the button wire.\n"
+        "6. Buzzer: Positive (+) to the pin, Negative (-) to GND.\n"
+        "7. Servo: Signal to the pin, VCC (red) to 5V, GND (brown) to GND.\n"
+        "8. Potentiometer: Pin 1 to 5V, Wiper (middle) to the analog pin, Pin 3 to GND.\n"
+        "9. lm35: VCC to 5V, OUT to the analog pin, GND to GND. "
+        "ultrasonic (HC-SR04): VCC, Trig, Echo, GND. pir: VCC, OUT, GND. dht: VCC, DATA, GND. "
+        "lcd_i2c: VCC, GND, SDA to A4, SCL to A5.\n"
+        "10. List a component's pins in the physical order of the part. "
+        "Use the exact pin numbers from the code and add power and GND for every part that needs them.\n"
+        "11. Only include parts the code really needs. If the code needs no external part, return an empty components list.\n"
+        + notes_lang
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": request.code},
+            ],
+        )
+        raw = response.choices[0].message.content.strip()
+        # Agar AI ne galti se ``` laga diya ho to hata do, aur sirf { ... } wala hissa lo
+        start, end = raw.find("{"), raw.rfind("}")
+        data = json.loads(raw[start:end + 1])
+        return {"error": None, "circuit": data}
+    except Exception as e:
+        return {"error": f"Circuit banane me problem: {e}", "circuit": None}
+
+
 class CompileRequest(BaseModel):
     board: str = "uno"
 
@@ -153,7 +221,7 @@ def compile_sketch(request: CompileRequest):
     # Resolve full path abhi, isi request ke waqt — /debug jaisa hi.
     # Agar bare "arduino-cli" PATH me na mile to fallback string use karo
     # taaki error message me pata chale ki resolution khud hi fail hui thi.
-    cli_path = shutil.which("arduino-cli") or "arduino-cli"
+    cli_path = ARDUINO_CLI
     cwd_now = os.getcwd()
 
     try:
@@ -253,7 +321,7 @@ def flash_sketch(request: FlashRequest):
 
     try:
         result = subprocess.run(
-            ["arduino-cli", "upload", "-p", request.port, "--fqbn", fqbn, SKETCH_DIR],
+            [ARDUINO_CLI, "upload", "-p", request.port, "--fqbn", fqbn, SKETCH_DIR],
             capture_output=True,
             text=True
         )
@@ -274,7 +342,7 @@ def list_ports():
     """(Local-only) Connected COM ports ki list deta hai."""
     try:
         result = subprocess.run(
-            ["arduino-cli", "board", "list"],
+            [ARDUINO_CLI, "board", "list"],
             capture_output=True,
             text=True
         )
@@ -300,11 +368,11 @@ def list_ports():
 def debug_info():
     info = {}
 
-    info["arduino_cli_path"] = shutil.which("arduino-cli")
+    info["arduino_cli_path"] = ARDUINO_CLI
     info["cwd"] = os.getcwd()
 
     try:
-        v = subprocess.run(["arduino-cli", "version"], capture_output=True, text=True, timeout=15)
+        v = subprocess.run([ARDUINO_CLI, "version"], capture_output=True, text=True, timeout=15)
         info["version_stdout"] = v.stdout.strip()
         info["version_stderr"] = v.stderr.strip()
         info["version_returncode"] = v.returncode
@@ -314,7 +382,7 @@ def debug_info():
         info["version_error"] = str(e)
 
     try:
-        c = subprocess.run(["arduino-cli", "core", "list"], capture_output=True, text=True, timeout=15)
+        c = subprocess.run([ARDUINO_CLI, "core", "list"], capture_output=True, text=True, timeout=15)
         info["installed_cores_stdout"] = c.stdout.strip()
         info["installed_cores_stderr"] = c.stderr.strip()
     except FileNotFoundError:

@@ -1,36 +1,29 @@
 # --- Base: halka Python image ---
 FROM python:3.11-slim
 
-# System tools jo arduino-cli install karne aur usko chalane ke liye chahiye
+# arduino-cli install karne ke liye zaroori tools
 RUN apt-get update && apt-get install -y \
     curl \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# --- arduino-cli install karo (seedha /usr/local/bin me, taaki PATH already
-# usko dekh le aur koi extra ENV PATH line na chahiye) ---
+# arduino-cli (seedha /usr/local/bin me, taaki PATH me mil jaye)
 RUN curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/usr/local/bin sh -s -- v0.35.3
 
-# --- Board "cores" install karo (Uno / ESP32 / ESP8266 ke liye) ---
+# Sirf Arduino Uno ka core (online version abhi sirf Uno flash karta hai).
+# ESP32/ESP8266 hata diye hain — wo build ko bahut slow karte the.
 RUN arduino-cli core update-index && \
-    arduino-cli core install arduino:avr && \
-    arduino-cli config init && \
-    arduino-cli config add board_manager.additional_urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json https://arduino.esp8266.com/stable/package_esp8266com_index.json && \
-    arduino-cli core update-index && \
-    arduino-cli core install esp32:esp32 && \
-    arduino-cli core install esp8266:esp8266
+    arduino-cli core install arduino:avr
 
-# --- App code ke liye folder ---
 WORKDIR /app
 
-# Pehle sirf requirements copy karo (Docker caching fast build ke liye)
+# Pehle sirf requirements copy karo (Docker cache se build tez hota hai)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Baaki poora project copy karo
+# Baaki poora project
 COPY . .
 
-# Render/Railway jis bhi port par bhejein, usi par chalna chahiye
 ENV PORT=8000
 EXPOSE 8000
 
