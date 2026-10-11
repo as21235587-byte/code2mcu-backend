@@ -1524,11 +1524,14 @@ function parseIntelHex(hexText) {
 }
 
 // STK500v1 (Optiboot) uploader over Web Serial — Arduino Uno ke liye.
-async function stk500Flash(port, flashBytes) {
+// Ek koshish: port naye sire se kholta hai, reset karta hai, sync karta hai, pages likhta hai.
+async function stk500Attempt(port, flashBytes, baud) {
+  try { await port.close(); } catch (e) { /* pehle se band ho to theek */ }
+  await port.open({ baudRate: baud, bufferSize: 4096 });
+
   const writer = port.writable.getWriter();
   const reader = port.readable.getReader();
 
-  // Ek hi background loop saara data rxBuf me jama karta hai (taaki koi jawab kho na jaye).
   let rxBuf = [];
   let stopReading = false;
   const readLoop = (async () => {
@@ -1541,65 +1544,99 @@ async function stk500Flash(port, flashBytes) {
     } catch (e) { /* reader release hone par yahan aata hai */ }
   })();
 
+  const hex = n => "0x" + n.toString(16).padStart(2, "0");
   async function writeBytes(bytes) { await writer.write(new Uint8Array(bytes)); }
-  async function readBytes(n, timeoutMs) {
-    timeoutMs = timeoutMs || 1000;
+  async function readBytes(n, timeoutMs, what) {
     const start = Date.now();
     while (rxBuf.length < n) {
-      if (Date.now() - start > timeoutMs) throw new Error("Timeout waiting for bootloader response");
+      if (Date.now() - start > timeoutMs) {
+        throw new Error("Board ne jawab nahi diya (" + what + "): " + rxBuf.length + "/" + n + " bytes mile, " + baud + " baud par");
+      }
       await sleep(5);
     }
     return rxBuf.splice(0, n);
   }
+  async function expectOk(what, timeoutMs) {
+    const r = await readBytes(2, timeoutMs || 3000, what);
+    if (r[0] !== 0x14 || r[1] !== 0x10) {
+      throw new Error(what + ": galat jawab (" + hex(r[0]) + " " + hex(r[1]) + ")");
+    }
+  }
 
   try {
+    // 1) Board ko reset karke bootloader me lao aur sync karo
     let synced = false;
     for (let attempt = 0; attempt < 3 && !synced; attempt++) {
       await port.setSignals({ dataTerminalReady: false, requestToSend: false });
       await sleep(250);
       await port.setSignals({ dataTerminalReady: true, requestToSend: true });
-      await sleep(80);
-      for (let i = 0; i < 12 && !synced; i++) {
+      await sleep(100);
+      for (let i = 0; i < 10 && !synced; i++) {
         rxBuf.length = 0;
-        await writeBytes([0x30, 0x20]);   // STK_GET_SYNC, CRC_EOP
+        await writeBytes([0x30, 0x20]);   // STK_GET_SYNC
         try {
-          const resp = await readBytes(2, 120);
-          if (resp[0] === 0x14 && resp[1] === 0x10) synced = true;
-        } catch (e) { /* dobara try */ }
+          const r = await readBytes(2, 200, "sync");
+          if (r[0] === 0x14 && r[1] === 0x10) synced = true;
+        } catch (e) { /* dobara */ }
       }
     }
-    if (!synced) throw new Error("Could not sync with the bootloader. Check: board Uno hai?, koi aur app (Arduino IDE / Serial Monitor) port use to nahi kar raha?, Nano/clone ho to baud 57600 chahiye.");
-    log("Synced with bootloader.");
+    if (!synced) throw new Error("Bootloader se sync nahi hua (" + baud + " baud)");
+    log("Synced with bootloader (" + baud + " baud).");
 
+    // Sync ke waqt jo extra/der se aaye jawab bache hon, unhe saaf karo
+    await sleep(60);
+    rxBuf.length = 0;
+
+    // 2) Pages likho
     const PAGE_SIZE = 128;
     const totalPages = Math.ceil(flashBytes.length / PAGE_SIZE);
     for (let page = 0; page < totalPages; page++) {
       const byteAddr = page * PAGE_SIZE;
       const wordAddr = byteAddr >> 1;
-      await writeBytes([0x55, wordAddr & 0xFF, (wordAddr >> 8) & 0xFF, 0x20]); // STK_LOAD_ADDRESS
-      let resp = await readBytes(2);
-      if (!(resp[0] === 0x14 && resp[1] === 0x10)) throw new Error("Load-address failed at page " + page);
+      await writeBytes([0x55, wordAddr & 0xFF, (wordAddr >> 8) & 0xFF, 0x20]); // LOAD_ADDRESS
+      await expectOk("load address, page " + (page + 1) + "/" + totalPages, 3000);
 
       const pageData = [];
       for (let i = 0; i < PAGE_SIZE; i++) {
         const idx = byteAddr + i;
         pageData.push(idx < flashBytes.length ? flashBytes[idx] : 0xFF);
       }
-      await writeBytes([0x64, (PAGE_SIZE >> 8) & 0xFF, PAGE_SIZE & 0xFF, 0x46, ...pageData, 0x20]); // STK_PROG_PAGE
-      resp = await readBytes(2, 2000);
-      if (!(resp[0] === 0x14 && resp[1] === 0x10)) throw new Error("Programming failed at page " + page);
+      await writeBytes([0x64, (PAGE_SIZE >> 8) & 0xFF, PAGE_SIZE & 0xFF, 0x46, ...pageData, 0x20]); // PROG_PAGE
+      await expectOk("program page " + (page + 1) + "/" + totalPages, 4000);
 
-      log("Flashing... " + Math.round(((page + 1) / totalPages) * 100) + "%");
+      if (page % 8 === 0 || page === totalPages - 1) {
+        log("Flashing... " + Math.round(((page + 1) / totalPages) * 100) + "%");
+      }
     }
-    await writeBytes([0x51, 0x20]); // STK_LEAVE_PROGMODE
-    try { await readBytes(2, 500); } catch (e) {}
+
+    // 3) Program mode se bahar
+    await writeBytes([0x51, 0x20]);
+    try { await readBytes(2, 500, "leave progmode"); } catch (e) {}
   } finally {
     stopReading = true;
     try { reader.releaseLock(); }
     catch (e) { try { await reader.cancel(); } catch (_) {} try { reader.releaseLock(); } catch (_) {} }
     await readLoop;
-    writer.releaseLock();
+    try { writer.releaseLock(); } catch (e) {}
   }
+}
+
+// Teen koshish: 115200, phir 57600 (purane bootloader / kuch clones), phir wapas 115200.
+async function stk500Flash(port, flashBytes) {
+  const bauds = [115200, 57600, 115200];
+  let lastErr = null;
+  for (let i = 0; i < bauds.length; i++) {
+    try {
+      log("Flash koshish " + (i + 1) + "/" + bauds.length + " (" + bauds[i] + " baud)...");
+      await stk500Attempt(port, flashBytes, bauds[i]);
+      return;
+    } catch (e) {
+      lastErr = e;
+      log("⚠️ Koshish " + (i + 1) + " fail: " + e.message);
+      await sleep(600);
+    }
+  }
+  throw new Error("3 koshish ke baad bhi flash nahi hua. Aakhri error: " + (lastErr && lastErr.message));
 }
 
 async function flashViaWebSerial(board) {

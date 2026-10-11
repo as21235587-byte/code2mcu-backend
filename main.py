@@ -1,12 +1,13 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from groq import Groq
 from dotenv import load_dotenv
 import os
+import re
 import glob
 import time
 import shutil
@@ -69,14 +70,18 @@ def too_many_requests(request: Request) -> bool:
     return False
 
 
-DANGEROUS_KEYWORDS = [
-    "220v", "230v", "ac power", "mains", "short",
-    "gnd to vcc", "vcc to gnd", "reverse polarity"
+# Pehle "short" aur "mains" jaise words se "short delay" / "remains" bhi block ho jaate the.
+# Ab poore shabd (word boundary) par match hota hai, aur "short circuit" hi block hota hai.
+DANGEROUS_PATTERNS = [
+    r"\b220\s?v\b", r"\b230\s?v\b", r"\bac power\b", r"\bmains\b",
+    r"\bshort[\s-]?circuit\b", r"\bshorting\b",
+    r"\bgnd to vcc\b", r"\bvcc to gnd\b", r"\breverse polarity\b",
 ]
+_DANGEROUS_RE = re.compile("|".join(DANGEROUS_PATTERNS), re.IGNORECASE)
 
 
 def is_dangerous(text: str) -> bool:
-    return any(k in text.lower() for k in DANGEROUS_KEYWORDS)
+    return bool(_DANGEROUS_RE.search(text or ""))
 
 
 def strip_code_fences(text: str) -> str:
@@ -90,6 +95,11 @@ def strip_code_fences(text: str) -> str:
 @app.get("/")
 def home():
     return FileResponse("static/index.html")
+
+
+@app.get("/health")
+def health():
+    return {"ok": True}
 
 
 class CommandRequest(BaseModel):
@@ -125,6 +135,9 @@ def generate_code(request: CommandRequest, http: Request):
         return {"error": f"Code generate nahi ho paya: {e}", "code": None}
 
     generated_code = strip_code_fences(response.choices[0].message.content)
+
+    if not generated_code:
+        return {"error": "AI ne khaali jawab diya. Dobara try karo.", "code": None}
 
     if is_dangerous(generated_code):
         return {"error": "Generated code was blocked for safety reasons.", "code": None}
@@ -192,8 +205,10 @@ def make_circuit(request: CircuitRequest, http: Request):
                 {"role": "user", "content": request.code},
             ],
         )
-        raw = response.choices[0].message.content.strip()
+        raw = (response.choices[0].message.content or "").strip()
         start, end = raw.find("{"), raw.rfind("}")
+        if start == -1 or end == -1:
+            return {"error": "AI ne circuit JSON nahi diya. Dobara try karo.", "circuit": None}
         data = json.loads(raw[start:end + 1])
         return {"error": None, "circuit": data}
     except Exception as e:
